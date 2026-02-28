@@ -99,8 +99,8 @@ export function PromptPreview({ model }: Props) {
                     </div>
                 ) : (
                     SECTION_LABELS.map(({ key, label }) => {
-                        const val = model[key];
-                        if (!val.trim()) return null;
+                        const val = model[key] as string;
+                        if (!val || typeof val !== 'string' || !val.trim()) return null;
                         return (
                             <div key={key} className="space-y-1">
                                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">

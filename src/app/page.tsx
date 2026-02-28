@@ -1,9 +1,11 @@
 "use client";
 
 import { PromptPreview } from "@/components/PromptPreview";
+import { SettingsModal } from "@/components/SettingsModal";
 import { StageForm } from "@/components/StageForm";
 import { StageNav, STAGES } from "@/components/StageNav";
 import { Button } from "@/components/ui/button";
+import { generateStructuredPrompt } from "@/lib/gemini";
 import { CognitiveModel, usePromptStore } from "@/store/usePromptStore";
 import { RotateCcwIcon } from "lucide-react";
 import { useState } from "react";
@@ -20,6 +22,8 @@ export default function HomePage() {
     constraintCage: store.constraintCage,
     actionSlice: store.actionSlice,
     responseContract: store.responseContract,
+    apiKey: store.apiKey,
+    isGenerating: store.isGenerating,
   };
 
   const currentIndex = STAGES.findIndex((s) => s.id === currentStageId);
@@ -42,8 +46,37 @@ export default function HomePage() {
 
   const handleReset = () => {
     store.reset();
-    setCurrentStageId(1);
+    setCurrentStageId(0);
     setCompletedStages(new Set());
+  };
+
+  const handleAutoStructure = async () => {
+    if (!model.apiKey) {
+      alert("Please configure your Gemini API Key in Settings first.");
+      return;
+    }
+    if (!model.naturalPrompt.trim()) return;
+
+    try {
+      store.setField("isGenerating", true);
+      const structured = await generateStructuredPrompt(model.naturalPrompt, model.apiKey);
+
+      // Update store with generated fields
+      if (structured.intentLock) store.setField("intentLock", structured.intentLock);
+      if (structured.realityAnchor) store.setField("realityAnchor", structured.realityAnchor);
+      if (structured.constraintCage) store.setField("constraintCage", structured.constraintCage);
+      if (structured.actionSlice) store.setField("actionSlice", structured.actionSlice);
+      if (structured.responseContract) store.setField("responseContract", structured.responseContract);
+
+      // Mark stages 1-5 as completed and navigate to step 1 to review
+      setCompletedStages(new Set([0, 1, 2, 3, 4, 5]));
+      setCurrentStageId(1);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to auto-structure prompt.");
+    } finally {
+      store.setField("isGenerating", false);
+    }
   };
 
   return (
@@ -59,14 +92,15 @@ export default function HomePage() {
           completedStages={completedStages}
           onSelect={setCurrentStageId}
         />
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border flex flex-col gap-1">
+          <SettingsModal />
           <Button
             variant="ghost"
             size="sm"
-            className="w-full gap-2 text-xs text-muted-foreground"
+            className="w-full justify-start gap-3 px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={handleReset}
           >
-            <RotateCcwIcon className="h-3 w-3" />
+            <RotateCcwIcon className="h-4 w-4" />
             Reset All
           </Button>
         </div>
@@ -83,12 +117,14 @@ export default function HomePage() {
         <section className="flex-1 overflow-y-auto px-8 py-6">
           <StageForm
             stage={currentStage}
-            value={model[currentStage.key as keyof CognitiveModel]}
+            value={model[currentStage.key as keyof CognitiveModel] as string}
+            isGenerating={model.isGenerating}
             onChange={(val) =>
               store.setField(currentStage.key as keyof CognitiveModel, val)
             }
             onNext={handleNext}
             onPrev={handlePrev}
+            onAutoStructure={handleAutoStructure}
             isFirst={isFirst}
             isLast={isLast}
           />

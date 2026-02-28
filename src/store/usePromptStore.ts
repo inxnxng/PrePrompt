@@ -8,10 +8,12 @@ export type CognitiveModel = {
     constraintCage: string;
     actionSlice: string;
     responseContract: string;
+    apiKey: string;
+    isGenerating?: boolean; // Ephemeral state
 };
 
 type PromptStore = CognitiveModel & {
-    setField: (field: keyof CognitiveModel, value: string) => void;
+    setField: (field: keyof CognitiveModel, value: string | boolean) => void;
     reset: () => void;
 };
 
@@ -22,6 +24,8 @@ const initialState: CognitiveModel = {
     constraintCage: "",
     actionSlice: "",
     responseContract: "",
+    apiKey: "",
+    isGenerating: false,
 };
 
 export const usePromptStore = create<PromptStore>()(
@@ -43,7 +47,7 @@ export function estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
 }
 
-export function compileToPrompt(model: Omit<CognitiveModel, "naturalPrompt">): string {
+export function compileToPrompt(model: Omit<CognitiveModel, "naturalPrompt" | "apiKey" | "isGenerating">): string {
     return [
         `Goal:\n${model.intentLock}`,
         `Current State:\n${model.realityAnchor}`,

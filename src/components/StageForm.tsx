@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CognitiveModel } from "@/store/usePromptStore";
 
 const STAGE_META: Record<
-    keyof CognitiveModel,
+    Exclude<keyof CognitiveModel, "apiKey" | "isGenerating">,
     { placeholder: string; bad?: string; good?: string }
 > = {
     naturalPrompt: {
@@ -43,9 +43,11 @@ const STAGE_META: Record<
 type Props = {
     stage: Stage;
     value: string;
+    isGenerating?: boolean;
     onChange: (value: string) => void;
     onNext: () => void;
     onPrev: () => void;
+    onAutoStructure?: () => void;
     isFirst: boolean;
     isLast: boolean;
 };
@@ -53,20 +55,37 @@ type Props = {
 export function StageForm({
     stage,
     value,
+    isGenerating,
     onChange,
     onNext,
     onPrev,
+    onAutoStructure,
     isFirst,
     isLast,
 }: Props) {
-    const key = stage.key as keyof CognitiveModel;
+    const key = stage.key as Exclude<keyof CognitiveModel, "apiKey" | "isGenerating">;
     const meta = STAGE_META[key];
 
     return (
         <div className="flex flex-col gap-6 h-full">
-            {/* Stage description */}
-            <div>
+            {/* Stage description & Actions */}
+            <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">{stage.description}</p>
+                {isFirst && onAutoStructure && (
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={onAutoStructure}
+                        disabled={isGenerating || !value.trim()}
+                        className="gap-2"
+                    >
+                        {isGenerating ? (
+                            <span className="animate-pulse">✨ Structuring...</span>
+                        ) : (
+                            <span>✨ Auto-Structure</span>
+                        )}
+                    </Button>
+                )}
             </div>
 
             {/* Bad vs Good examples */}
@@ -104,6 +123,7 @@ export function StageForm({
                     className="flex-1 resize-none font-mono text-sm min-h-[160px]"
                     placeholder={meta.placeholder}
                     value={value}
+                    disabled={isGenerating}
                     onChange={(e) => onChange(e.target.value)}
                 />
             </div>
@@ -114,14 +134,14 @@ export function StageForm({
                     variant="outline"
                     size="sm"
                     onClick={onPrev}
-                    disabled={isFirst}
+                    disabled={isFirst || isGenerating}
                 >
                     Previous
                 </Button>
                 <span className="text-xs text-muted-foreground">
                     Step {STAGES.findIndex((s) => s.id === stage.id) + 1} of {STAGES.length}
                 </span>
-                <Button size="sm" onClick={onNext}>
+                <Button size="sm" onClick={onNext} disabled={isGenerating}>
                     {isLast ? "Generate Prompt" : "Next"}
                 </Button>
             </div>
