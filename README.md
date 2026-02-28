@@ -1,6 +1,12 @@
 # PrePrompt
 
+[**Live Demo: pre-prompt.vercel.app**](https://pre-prompt.vercel.app/)
+
 **PrePrompt** is a Pre-AI Cognitive Layer—a structured thinking protocol you pass through *before* sending a request to an AI system. It is designed to reduce token usage, prevent AI over-generation, and give you back control over your AI outputs.
+
+## 🔒 Privacy & Token Security
+
+All tokens and inputs you enter are processed locally. **We do not store your API tokens or prompt data anywhere**, so you do not need to worry about security leaks. However, because there is no remote saving feature, **you may need to re-enter your tokens each time you use the app or clear your browser data.**
 
 ## 🌟 The AI Collaboration Protocol
 

@@ -41,7 +41,9 @@ export function SettingsModal() {
                 <DialogHeader>
                     <DialogTitle>Settings</DialogTitle>
                     <DialogDescription>
-                        Configure your API keys for AI-assisted features. Keys are stored locally in your browser.
+                        Configure your API keys for AI-assisted features.
+                        <br /><br />
+                        <strong>Security Note:</strong> Your tokens are never stored on any server or anywhere permanently, ensuring complete privacy. However, because there is no save feature, you may need to re-enter your key upon returning to the app.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
