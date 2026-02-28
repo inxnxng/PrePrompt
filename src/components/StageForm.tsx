@@ -26,8 +26,8 @@ const STAGE_META: Record<
     },
     constraintCage: {
         placeholder: "List non-negotiable boundaries and restrictions...",
-        bad: "(none specified)",
-        good: "- TypeScript only\n- Modify one file only\n- No external libraries\n- No explanation in response",
+        bad: "Make the code clean and fast.\nUse whatever library you think is best.",
+        good: "- Must use Next.js App Router.\n- Pure Tailwind CSS, no custom CSS files.\n- Strictly avoid class components.\n- Do NOT modify the database schema.",
     },
     actionSlice: {
         placeholder: "Define the smallest meaningful execution unit for this task...",
@@ -36,8 +36,8 @@ const STAGE_META: Record<
     },
     responseContract: {
         placeholder: "Specify expected output format...",
-        bad: "(no format specified)",
-        good: "- Code only\n- No markdown\n- Diff format\n- No explanation",
+        bad: "Just give me the code.",
+        good: "- Provide the final code block only.\n- Output strictly as a unified diff.\n- No introductory or concluding remarks.\n- Include inline comments for regex.",
     },
 };
 
