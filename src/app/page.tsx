@@ -5,6 +5,11 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { StageForm } from "@/components/StageForm";
 import { StageNav, STAGES } from "@/components/StageNav";
 import { Button } from "@/components/ui/button";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { generateStructuredPrompt } from "@/lib/gemini";
 import { CognitiveModel, usePromptStore } from "@/store/usePromptStore";
 import { RotateCcwIcon } from "lucide-react";
@@ -106,40 +111,48 @@ export default function HomePage() {
         </div>
       </aside>
 
-      {/* Center — Input Form Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="border-b border-border px-8 py-4 shrink-0">
-          <h2 className="text-base font-semibold">{currentStage.label}</h2>
-          <p className="text-xs text-muted-foreground">
-            Step {currentIndex + 1} of {STAGES.length} — {currentStage.description}
-          </p>
-        </header>
-        <section className="flex-1 overflow-y-auto px-8 py-6">
-          <StageForm
-            stage={currentStage}
-            value={model[currentStage.key as keyof CognitiveModel] as string}
-            isGenerating={model.isGenerating}
-            onChange={(val) =>
-              store.setField(currentStage.key as keyof CognitiveModel, val)
-            }
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onAutoStructure={handleAutoStructure}
-            isFirst={isFirst}
-            isLast={isLast}
-          />
-        </section>
-      </main>
+      <ResizablePanelGroup orientation="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={65} minSize={30} className="flex flex-col">
+          {/* Center — Input Form Area */}
+          <main className="h-full flex flex-col overflow-hidden">
+            <header className="border-b border-border px-8 py-4 shrink-0">
+              <h2 className="text-base font-semibold">{currentStage.label}</h2>
+              <p className="text-xs text-muted-foreground">
+                Step {currentIndex + 1} of {STAGES.length} — {currentStage.description}
+              </p>
+            </header>
+            <section className="flex-1 overflow-y-auto px-8 py-6">
+              <StageForm
+                stage={currentStage}
+                value={model[currentStage.key as keyof CognitiveModel] as string}
+                isGenerating={model.isGenerating}
+                onChange={(val) =>
+                  store.setField(currentStage.key as keyof CognitiveModel, val)
+                }
+                onNext={handleNext}
+                onPrev={handlePrev}
+                onAutoStructure={handleAutoStructure}
+                isFirst={isFirst}
+                isLast={isLast}
+              />
+            </section>
+          </main>
+        </ResizablePanel>
 
-      {/* Right — Preview Panel */}
-      <aside className="w-80 shrink-0 border-l border-border flex flex-col">
-        <div className="px-4 py-5 border-b border-border shrink-0">
-          <h2 className="text-sm font-semibold">Prompt Preview</h2>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <PromptPreview model={model} />
-        </div>
-      </aside>
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={35} minSize={20} className="flex flex-col border-l border-border bg-background">
+          {/* Right — Preview Panel */}
+          <aside className="h-full flex flex-col">
+            <div className="px-4 py-5 border-b border-border shrink-0">
+              <h2 className="text-sm font-semibold">Prompt Preview</h2>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <PromptPreview model={model} />
+            </div>
+          </aside>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

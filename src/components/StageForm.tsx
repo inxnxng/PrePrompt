@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CognitiveModel } from "@/store/usePromptStore";
+import { CheckIcon, SparklesIcon } from "lucide-react";
 
 const STAGE_META: Record<
     Exclude<keyof CognitiveModel, "apiKey" | "isGenerating">,
@@ -138,12 +139,27 @@ export function StageForm({
                 >
                     Previous
                 </Button>
-                <span className="text-xs text-muted-foreground">
-                    Step {STAGES.findIndex((s) => s.id === stage.id) + 1} of {STAGES.length}
-                </span>
-                <Button size="sm" onClick={onNext} disabled={isGenerating}>
-                    {isLast ? "Generate Prompt" : "Next"}
-                </Button>
+                <div className="flex items-center gap-4">
+                    <span className="text-xs text-muted-foreground flex items-center">
+                        Step {STAGES.findIndex((s) => s.id === stage.id) + 1} of {STAGES.length}
+                    </span>
+                    {isLast ? (
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2">
+                                <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
+                                Ready in sidebar
+                            </span>
+                            <Button size="sm" onClick={onNext} disabled={isGenerating} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                                <CheckIcon className="w-4 h-4" />
+                                Done
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button size="sm" onClick={onNext} disabled={isGenerating}>
+                            Next
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );

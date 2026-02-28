@@ -28,7 +28,7 @@ Can structured pre-thinking reduce:
 
 ---
 
-# 3. The AI Collaboration Protocol (ACP v1.0)
+# 3. The AI Collaboration Protocol
 
 The protocol consists of 5 mandatory thinking stages.
 
