@@ -1,36 +1,42 @@
 "use client";
 
+import { Translation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { CognitiveModel } from "@/store/usePromptStore";
 import { CheckIcon } from "lucide-react";
+
+export type StageKey = Exclude<keyof CognitiveModel, "apiKey" | "language" | "isGenerating" | "baselineTokens">;
 
 export type Stage = {
     id: number;
-    key: string;
-    label: string;
-    description: string;
+    key: StageKey;
 };
 
+// Internal stable array
 export const STAGES: Stage[] = [
-    { id: 0, key: "naturalPrompt", label: "Initial Draft", description: "Your original, natural language prompt" },
-    { id: 1, key: "intentLock", label: "Intent Lock", description: "Define the desired end-state" },
-    { id: 2, key: "realityAnchor", label: "Reality Anchor", description: "Describe current system state" },
-    { id: 3, key: "constraintCage", label: "Constraint Cage", description: "Define non-negotiable boundaries" },
-    { id: 4, key: "actionSlice", label: "Action Slice", description: "Smallest meaningful execution unit" },
-    { id: 5, key: "responseContract", label: "Response Contract", description: "Specify output format requirements" },
+    { id: 0, key: "naturalPrompt" },
+    { id: 1, key: "intentLock" },
+    { id: 2, key: "realityAnchor" },
+    { id: 3, key: "constraintCage" },
+    { id: 4, key: "actionSlice" },
+    { id: 5, key: "responseContract" },
 ];
 
 type Props = {
     currentStage: number;
     completedStages: Set<number>;
     onSelect: (id: number) => void;
+    t: Translation;
 };
 
-export function StageNav({ currentStage, completedStages, onSelect }: Props) {
+export function StageNav({ currentStage, completedStages, onSelect, t }: Props) {
     return (
         <nav className="flex flex-col gap-1 p-3 flex-1">
             {STAGES.map((stage) => {
                 const isActive = stage.id === currentStage;
                 const isCompleted = completedStages.has(stage.id);
+                // Get translatable label and description
+                const { label } = t.stages[stage.key];
 
                 return (
                     <button
@@ -59,7 +65,7 @@ export function StageNav({ currentStage, completedStages, onSelect }: Props) {
                                 stage.id
                             )}
                         </span>
-                        <span className="truncate">{stage.label}</span>
+                        <span className="truncate">{label}</span>
                     </button>
                 );
             })}

@@ -1,3 +1,4 @@
+import { Language } from "@/lib/i18n";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -9,11 +10,13 @@ export type CognitiveModel = {
     actionSlice: string;
     responseContract: string;
     apiKey: string;
+    language: Language;
     isGenerating?: boolean; // Ephemeral state
+    baselineTokens: number | null;
 };
 
 type PromptStore = CognitiveModel & {
-    setField: (field: keyof CognitiveModel, value: string | boolean) => void;
+    setField: (field: keyof CognitiveModel, value: string | boolean | number | null) => void;
     reset: () => void;
 };
 
@@ -25,7 +28,9 @@ const initialState: CognitiveModel = {
     actionSlice: "",
     responseContract: "",
     apiKey: "",
+    language: "en",
     isGenerating: false,
+    baselineTokens: null,
 };
 
 export const usePromptStore = create<PromptStore>()(
@@ -47,7 +52,7 @@ export function estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
 }
 
-export function compileToPrompt(model: Omit<CognitiveModel, "naturalPrompt" | "apiKey" | "isGenerating">): string {
+export function compileToPrompt(model: Omit<CognitiveModel, "naturalPrompt" | "apiKey" | "language" | "isGenerating">): string {
     return [
         `Goal:\n${model.intentLock}`,
         `Current State:\n${model.realityAnchor}`,

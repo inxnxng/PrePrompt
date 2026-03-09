@@ -11,8 +11,10 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { generateStructuredPrompt } from "@/lib/gemini";
+import { translations } from "@/lib/i18n";
 import { CognitiveModel, usePromptStore } from "@/store/usePromptStore";
-import { RotateCcwIcon } from "lucide-react";
+import { ArrowRightIcon, RotateCcwIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function HomePage() {
@@ -28,8 +30,12 @@ export default function HomePage() {
     actionSlice: store.actionSlice,
     responseContract: store.responseContract,
     apiKey: store.apiKey,
+    language: store.language,
     isGenerating: store.isGenerating,
+    baselineTokens: store.baselineTokens,
   };
+
+  const t = translations[model.language];
 
   const currentIndex = STAGES.findIndex((s) => s.id === currentStageId);
   const currentStage = STAGES[currentIndex];
@@ -57,7 +63,7 @@ export default function HomePage() {
 
   const handleAutoStructure = async () => {
     if (!model.apiKey) {
-      alert("Please configure your Gemini API Key in Settings first.");
+      alert(t.alertNoApiKey);
       return;
     }
     if (!model.naturalPrompt.trim()) return;
@@ -78,7 +84,7 @@ export default function HomePage() {
       setCurrentStageId(1);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Failed to auto-structure prompt.");
+      alert(err.message || t.alertFailed);
     } finally {
       store.setField("isGenerating", false);
     }
@@ -90,15 +96,26 @@ export default function HomePage() {
       <aside className="w-56 shrink-0 border-r border-border bg-muted/40 flex flex-col">
         <div className="px-4 py-5 border-b border-border">
           <h1 className="text-sm font-semibold tracking-tight">PrePrompt</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">ACP v1.0</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t.appSubtitle}</p>
         </div>
         <StageNav
           currentStage={currentStageId}
           completedStages={completedStages}
           onSelect={setCurrentStageId}
+          t={t}
         />
         <div className="p-3 border-t border-border flex flex-col gap-1">
           <SettingsModal />
+          <Link href="/about" className="w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-3 px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ArrowRightIcon className="h-4 w-4" />
+              {t.about.link}
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="sm"
@@ -106,7 +123,7 @@ export default function HomePage() {
             onClick={handleReset}
           >
             <RotateCcwIcon className="h-4 w-4" />
-            Reset All
+            {t.resetAll}
           </Button>
         </div>
       </aside>
@@ -116,9 +133,9 @@ export default function HomePage() {
           {/* Center — Input Form Area */}
           <main className="h-full flex flex-col overflow-hidden">
             <header className="border-b border-border px-8 py-4 shrink-0">
-              <h2 className="text-base font-semibold">{currentStage.label}</h2>
+              <h2 className="text-base font-semibold">{t.stages[currentStage.key].label}</h2>
               <p className="text-xs text-muted-foreground">
-                Step {currentIndex + 1} of {STAGES.length} — {currentStage.description}
+                {t.stepOf(currentIndex + 1, STAGES.length)} — {t.stages[currentStage.key].description}
               </p>
             </header>
             <section className="flex-1 overflow-y-auto px-8 py-6">
@@ -134,6 +151,7 @@ export default function HomePage() {
                 onAutoStructure={handleAutoStructure}
                 isFirst={isFirst}
                 isLast={isLast}
+                t={t}
               />
             </section>
           </main>
@@ -145,10 +163,10 @@ export default function HomePage() {
           {/* Right — Preview Panel */}
           <aside className="h-full flex flex-col">
             <div className="px-4 py-5 border-b border-border shrink-0">
-              <h2 className="text-sm font-semibold">Prompt Preview</h2>
+              <h2 className="text-sm font-semibold">{t.promptPreview}</h2>
             </div>
             <div className="flex-1 overflow-hidden">
-              <PromptPreview model={model} />
+              <PromptPreview model={model} t={t} />
             </div>
           </aside>
         </ResizablePanel>

@@ -1,45 +1,13 @@
 "use client";
 
-import { Stage, STAGES } from "@/components/StageNav";
+import { Stage } from "@/components/StageNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { CognitiveModel } from "@/store/usePromptStore";
-import { CheckIcon, SparklesIcon } from "lucide-react";
-
-const STAGE_META: Record<
-    Exclude<keyof CognitiveModel, "apiKey" | "isGenerating">,
-    { placeholder: string; bad?: string; good?: string }
-> = {
-    naturalPrompt: {
-        placeholder: "Write your initial, unstructured prompt here as you normally would...",
-    },
-    intentLock: {
-        placeholder: "Define the desired end-state clearly and specifically...",
-        bad: "Make a login system.",
-        good: "- Email/password login.\n- JWT issuance.\n- No session storage.",
-    },
-    realityAnchor: {
-        placeholder: "Describe your current system state explicitly...",
-        bad: "Add login to my project.",
-        good: "- Next.js 14 App Router.\n- Supabase connected.\n- No existing authentication system.",
-    },
-    constraintCage: {
-        placeholder: "List non-negotiable boundaries and restrictions...",
-        bad: "Make the code clean and fast.\nUse whatever library you think is best.",
-        good: "- Must use Next.js App Router.\n- Pure Tailwind CSS, no custom CSS files.\n- Strictly avoid class components.\n- Do NOT modify the database schema.",
-    },
-    actionSlice: {
-        placeholder: "Define the smallest meaningful execution unit for this task...",
-        bad: "Implement full authentication system.",
-        good: "Step 1: Create login form UI only.\n\nNo API wiring.",
-    },
-    responseContract: {
-        placeholder: "Specify expected output format...",
-        bad: "Just give me the code.",
-        good: "- Provide the final code block only.\n- Output strictly as a unified diff.\n- No introductory or concluding remarks.\n- Include inline comments for regex.",
-    },
-};
+import { Translation } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import { CheckIcon, ChevronDownIcon, LightbulbIcon, SparklesIcon } from "lucide-react";
+import { useState } from "react";
 
 type Props = {
     stage: Stage;
@@ -51,6 +19,7 @@ type Props = {
     onAutoStructure?: () => void;
     isFirst: boolean;
     isLast: boolean;
+    t: Translation;
 };
 
 export function StageForm({
@@ -63,52 +32,97 @@ export function StageForm({
     onAutoStructure,
     isFirst,
     isLast,
+    t
 }: Props) {
-    const key = stage.key as Exclude<keyof CognitiveModel, "apiKey" | "isGenerating">;
-    const meta = STAGE_META[key];
+    const [tipsOpen, setTipsOpen] = useState(true);
+    const meta = t.stages[stage.key];
+
+    // Specificity indicator
+    const count = value.length;
+    let scoreText = t.specificityLow;
+    let colorClass = "text-destructive bg-destructive/10";
+    if (count >= 150) {
+        scoreText = t.specificityHigh;
+        colorClass = "text-emerald-600 bg-emerald-600/10";
+    } else if (count >= 30) {
+        scoreText = t.specificityMid;
+        colorClass = "text-amber-600 bg-amber-600/10";
+    }
+    if (count === 0) {
+        scoreText = "-";
+        colorClass = "text-muted-foreground bg-muted";
+    }
 
     return (
-        <div className="flex flex-col gap-6 h-full">
-            {/* Stage description & Actions */}
-            <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{stage.description}</p>
+        <div className="flex flex-col gap-6 min-h-full">
+            {/* Header & Auto-Structure */}
+            <div className="flex items-start justify-between gap-4">
+                <p className="text-sm text-muted-foreground leading-relaxed">{meta.description}</p>
                 {isFirst && onAutoStructure && (
                     <Button
                         size="sm"
                         variant="secondary"
                         onClick={onAutoStructure}
                         disabled={isGenerating || !value.trim()}
-                        className="gap-2"
+                        className="gap-2 shrink-0 border border-border bg-background hover:bg-muted"
                     >
                         {isGenerating ? (
-                            <span className="animate-pulse">✨ Structuring...</span>
+                            <span className="animate-pulse">{t.autoStructuring}</span>
                         ) : (
-                            <span>✨ Auto-Structure</span>
+                            <span>{t.autoStructure}</span>
                         )}
                     </Button>
                 )}
             </div>
 
+            {/* Specificity Tips (Collapsible) */}
+            {meta.tips && meta.tips.length > 0 && (
+                <div className="rounded-md border border-border bg-muted/20 overflow-hidden text-left">
+                    <button
+                        onClick={() => setTipsOpen(!tipsOpen)}
+                        className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-muted/50 transition-colors"
+                    >
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <LightbulbIcon className="w-3.5 h-3.5 text-amber-500" />
+                            {t.tipsLabel}
+                        </div>
+                        <ChevronDownIcon className={cn("w-4 h-4 text-muted-foreground transition-transform", tipsOpen ? "rotate-180" : "")} />
+                    </button>
+                    {tipsOpen && (
+                        <div className="p-3 pt-0 border-t border-border/50 bg-background/30 text-left">
+                            <ul className="space-y-1.5 mt-2">
+                                {meta.tips.map((tip, i) => (
+                                    <li key={i} className="text-[11px] text-muted-foreground flex gap-2">
+                                        <span className="text-muted-foreground/50 mt-[1px]">•</span>
+                                        <span className="leading-relaxed">{tip}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Bad vs Good examples */}
             {meta.bad && meta.good && (
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-md border border-border p-3">
+                    <div className="rounded-md border border-border p-3 flex flex-col items-start text-left">
                         <div className="flex items-center gap-1.5 mb-2">
-                            <Badge variant="outline" className="text-[10px] text-destructive border-destructive/40">
-                                Bad
+                            <Badge variant="outline" className="text-[10px] text-destructive border-destructive/40 bg-destructive/5 rounded-sm px-1.5 py-0">
+                                {t.bad}
                             </Badge>
                         </div>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
                             {meta.bad}
                         </pre>
                     </div>
-                    <div className="rounded-md border border-border p-3">
+                    <div className="rounded-md border border-border p-3 flex flex-col items-start bg-emerald-500/5 text-left">
                         <div className="flex items-center gap-1.5 mb-2">
-                            <Badge variant="outline" className="text-[10px] text-green-600 border-green-600/40">
-                                Good
+                            <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600/40 bg-emerald-600/10 rounded-sm px-1.5 py-0">
+                                {t.good}
                             </Badge>
                         </div>
-                        <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
                             {meta.good}
                         </pre>
                     </div>
@@ -116,12 +130,20 @@ export function StageForm({
             )}
 
             {/* Input */}
-            <div className="flex flex-col gap-2 flex-1">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Your Input
-                </label>
+            <div className="flex flex-col gap-2 shrink-0">
+                <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        {t.yourInput}
+                    </label>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground uppercase">{t.specificityLabel}:</span>
+                        <div className={cn("text-[10px] font-medium px-2 py-0.5 rounded-sm transition-colors", colorClass)}>
+                            {scoreText}
+                        </div>
+                    </div>
+                </div>
                 <Textarea
-                    className="flex-1 resize-none font-mono text-sm min-h-[160px]"
+                    className="h-[320px] resize-y font-mono text-sm p-4 bg-background/50 focus-visible:bg-background transition-colors leading-relaxed"
                     placeholder={meta.placeholder}
                     value={value}
                     disabled={isGenerating}
@@ -130,33 +152,33 @@ export function StageForm({
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between pt-2 border-t border-border">
+            <div className="flex items-center justify-between pt-2 border-t border-border shrink-0 mt-auto">
                 <Button
                     variant="outline"
                     size="sm"
                     onClick={onPrev}
                     disabled={isFirst || isGenerating}
                 >
-                    Previous
+                    {t.previous}
                 </Button>
                 <div className="flex items-center gap-4">
                     <span className="text-xs text-muted-foreground flex items-center">
-                        Step {STAGES.findIndex((s) => s.id === stage.id) + 1} of {STAGES.length}
+                        {t.stepOf(stage.id + 1, 6)}
                     </span>
                     {isLast ? (
                         <div className="flex items-center gap-3">
                             <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2">
                                 <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
-                                Ready in sidebar
+                                {t.readyInSidebar}
                             </span>
                             <Button size="sm" onClick={onNext} disabled={isGenerating} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
                                 <CheckIcon className="w-4 h-4" />
-                                Done
+                                {t.done}
                             </Button>
                         </div>
                     ) : (
                         <Button size="sm" onClick={onNext} disabled={isGenerating}>
-                            Next
+                            {t.next}
                         </Button>
                     )}
                 </div>
