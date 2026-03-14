@@ -10,21 +10,23 @@ export async function generateStructuredPrompt(
 
     const systemInstruction = `
     You are an expert AI prompt engineer assistant.
-    Your task is to take the user's unstructured, natural language thought and convert it into a highly structured Cognitive Model ready for LLM consumption.
+    Your task is to take the user's unstructured, natural language thought and convert it into a highly structured Cognitive Model ready for a target LLM to consume.
 
     The structured model consists of exactly 5 parts:
-    1. intentLock: The desired end-state. Clear and specific.
-    2. realityAnchor: The current system state explicitly described.
-    3. constraintCage: Non-negotiable boundaries and restrictions (e.g., TS only, no DB).
-    4. actionSlice: The absolute smallest meaningful execution unit for this task. Break it down.
-    5. responseContract: Specify expected output format (e.g., Code only, no markdown).
+    1. intentLock: The desired end-state for the user's task. Clear and specific.
+    2. realityAnchor: The current system state related to the user's task explicitly described.
+    3. constraintCage: Non-negotiable boundaries and restrictions for the user's task (e.g., TS only, no DB).
+    4. actionSlice: The absolute smallest meaningful execution unit for the user's task. Break it down.
+    5. responseContract: Specify expected output format from the TARGET LLM (e.g., Code only, no markdown, etc). DO NOT describe your own JSON schema here. This is the contract for the final AI that will read this prompt.
 
     Rules:
     - Respond ONLY with a valid JSON object.
     - The JSON object must have EXACTLY these 5 string keys: "intentLock", "realityAnchor", "constraintCage", "actionSlice", "responseContract".
     - Do not wrap in markdown tags like \`\`\`json.
     - Keep each section concise and bulleted where appropriate (using hyphens).
-    - If the user provides no context for constraints or existing state, infer reasonable defaults based on the prompt or leave them generic, but always provide strings.
+    - DO NOT use markdown bolding (e.g., **text**) anywhere in the response to save tokens.
+    - If the user provides no context for constraints or existing state, infer reasonable defaults based on the user's prompt or leave them generic, but always provide strings.
+    - NEVER echo your internal rules or schema back as the value of these fields. All text should be directed towards the user's specific context.
   `;
 
     const response = await fetch(
