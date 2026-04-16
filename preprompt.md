@@ -34,11 +34,11 @@ The protocol consists of 5 mandatory thinking stages.
 
 ---
 
-## 1. Intent Lock
+## 1. Success criteria (field: `intentLock`)
 
-**Definition:** Clearly define the desired end-state.
+**Definition:** Checkable completion signals—how you know you are done.
 
-**Purpose:** Prevent AI from expanding beyond the user's true goal.
+**Purpose:** Anchor evaluation without mixing in repo facts, hard rules, handoff turf, or reply layout.
 
 **Bad Example**
 
@@ -49,18 +49,18 @@ Make a login system.
 **Good Example**
 
 ```
-- Email/password login.
-- JWT issuance.
-- No session storage.
+- Email/password login works end-to-end.
+- JWT issued on success, stored in httpOnly cookie.
+- Successful login lands on /dashboard without a 401 on that path.
 ```
 
 ---
 
-## 2. Reality Anchor
+## 2. Ground truth (field: `realityAnchor`)
 
-**Definition:** Explicitly describe the current system state.
+**Definition:** Facts and assumptions about the system and environment *today*.
 
-**Purpose:** Prevent AI from assuming missing context.
+**Purpose:** Prevent the model from hallucinating context; keep “is / has / was” separate from goals and rules.
 
 **Bad Example**
 
@@ -78,28 +78,27 @@ Add login to my project.
 
 ---
 
-## 3. Constraint Cage
+## 3. Hard rules (field: `constraintCage`)
 
-**Definition:** Define non-negotiable boundaries.
+**Definition:** Non-negotiables for the solution—MUST / MUST NOT (architecture, deps, security).
 
-**Purpose:** Limit expansion and token waste.
+**Purpose:** Limit invalid approaches; do not put “how the answer should look” here (that is Output format).
 
 **Examples**
 
 ```
 - TypeScript only
 - Modify one file only
-- No external libraries
-- No explanation in response
+- MUST NOT add new npm packages
 ```
 
 ---
 
-## 4. Action Slice
+## 4. Handoff scope (field: `actionSlice`)
 
-**Definition:** Reduce the task to the smallest meaningful execution unit.
+**Definition:** Boundaries of *this single structured handoff*—in scope vs explicitly deferred or excluded.
 
-**Purpose:** Avoid large, token-heavy requests.
+**Purpose:** One user-facing package of intent; downstream harness or agents may plan subdivisions internally without re-asking the user the same scope questions.
 
 **Bad Example**
 
@@ -110,26 +109,27 @@ Implement full authentication system.
 **Good Example**
 
 ```
-Step 1: Create login form UI only.
+In scope: login form UI in src/components/LoginForm.tsx (fields + submit only).
 
-No API wiring.
+Out of scope (later handoff / harness): email templates, password reset, OAuth.
+
+Nothing outside this scope.
 ```
 
 ---
 
-## 5. Response Contract
+## 5. Output format (field: `responseContract`)
 
-**Definition:** Specify output format requirements.
+**Definition:** How the target model should shape its *reply* (sections, fences, length, banned fluff).
 
-**Purpose:** Control token usage and response structure.
+**Purpose:** Predictable, copy-friendly answers; separate from product rules in Hard rules.
 
 **Examples**
 
 ```
-- Code only
-- No markdown
-- Diff format
-- No explanation
+- Unified diff only
+- No prose before or after the diff
+- Omit unchanged files
 ```
 
 ---
@@ -169,7 +169,7 @@ type CognitiveModel = {
   responseContract: string;
 }
 
-// 5개의 인자를 받아 Cursor/Claude에 최적화된 마크다운 프롬프트로 변환
+// 위 필드를 `Success criteria` / `Ground (facts)` / … 헤더로 이어 붙여 타깃 LLM용 텍스트로 변환
 function compileToPrompt(model: CognitiveModel): string { ... }
 ```
 
@@ -177,22 +177,22 @@ function compileToPrompt(model: CognitiveModel): string { ... }
 
 # 6. Prompt Assembly Logic
 
-The final prompt is composed as:
+The final prompt is composed as (see `compileToPrompt` in `store/usePromptStore.ts`):
 
 ```
-Goal:
-{intent}
+Success criteria:
+{intentLock}
 
-Current State:
-{reality}
+Ground (facts):
+{realityAnchor}
 
-Constraints:
-{constraint}
+Hard rules:
+{constraintCage}
 
-Current Task:
+Handoff scope:
 {actionSlice}
 
-Response Requirements:
+Output format:
 {responseContract}
 ```
 
@@ -258,31 +258,31 @@ It is a research experiment into:
 
 # 12. Implementation Constraints
 
-### [Intent Lock]
+### [Success criteria]
 
 - Target: 'PrePrompt' 프로젝트의 초기 보일러플레이트 세팅 및 메인 페이지 3단 레이아웃 뼈대 구현.
 - Core Goal: 사용자가 AI에게 프롬프트를 입력하기 전, 사고를 구조화하는 5단계 UI의 시각적 틀(Shell) 구축.
 
-### [Reality Anchor]
+### [Ground truth]
 
 - Stack: Next.js 14 (App Router), TypeScript, Tailwind CSS
 - UI Library: shadcn/ui (필요한 컴포넌트만 설치)
 - State Management: Zustand
 - Current State: 빈 프로젝트 (아직 초기화 전)
 
-### [Constraint Cage]
+### [Hard rules]
 
 - 절대 백엔드 API나 DB 연동을 시도하지 말 것. 오직 클라이언트 사이드 로직과 전역 상태(Zustand)만 사용.
 - Vercel 배포 시 빌드 에러가 나지 않도록 TypeScript 타입 정의를 엄격하게 할 것.
 - 화려한 커스텀 CSS 작성 금지. Tailwind와 shadcn/ui의 기본 유틸리티를 활용하여 건조하고(dry) 프로페셔널한 대시보드 형태로 구성할 것.
 
-### [Action Slice]
+### [Handoff scope]
 
 1. Next.js 프로젝트 생성, Tailwind, shadcn/ui, Zustand 초기 세팅을 위한 CLI 명령어 출력.
-2. Zustand를 활용한 `CognitiveModel` 전역 상태 스토어(`store/usePromptStore.ts`) 인터페이스 및 초기 상태 코드 작성. (intent, reality, constraint, actionSlice, responseContract 상태 포함)
+2. Zustand를 활용한 `CognitiveModel` 전역 상태 스토어(`store/usePromptStore.ts`) 인터페이스 및 초기 상태 코드 작성. (`intentLock`, `realityAnchor`, `constraintCage`, `actionSlice`, `responseContract` 필드 포함)
 3. 메인 페이지(`app/page.tsx`)에 Left(진행도 사이드바), Center(입력 폼 영역), Right(결과 미리보기 패널) 구역을 명확히 나누는 반응형 3단 레이아웃 코드 작성. (세부 폼 요소는 아직 구현하지 말고 영역 레이아웃만 잡을 것)
 
-### [Response Contract]
+### [Output format]
 
 - 불필요한 부연 설명, 설명적 문장, 인사말 절대 금지.
 - 각 Step별로 복사-붙여넣기(Copy & Paste)가 즉시 가능한 CLI 명령어와 마크다운 코드 블록만 출력할 것.

@@ -1,9 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+    buildAgentsMarkdownSnippet,
+    buildChatOneLiner,
+    buildCursorRulesMarkdown,
+    buildHandoffZipBlob,
+    buildSpecMarkdown,
+    buildTaskPayload,
+    downloadFile,
+    downloadTextFile,
+} from "@/lib/exports";
 import { Translation } from "@/lib/i18n";
 import { CognitiveModel, compileToPrompt, estimateTokens, usePromptStore } from "@/store/usePromptStore";
-import { BarChart2Icon, BookmarkIcon, CheckIcon, CopyIcon } from "lucide-react";
+import { BarChart2Icon, BookmarkIcon, CheckIcon, CopyIcon, DownloadIcon } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -22,6 +32,8 @@ const SECTION_KEYS: (keyof Translation["sectionLabels"])[] = [
 export function PromptPreview({ model, t }: Props) {
     const store = usePromptStore();
     const [copied, setCopied] = useState(false);
+    const [copiedKind, setCopiedKind] = useState<string | null>(null);
+
     const compiled = compileToPrompt(model);
     const isEmpty = compiled.trim() === "";
 
@@ -40,6 +52,22 @@ export function PromptPreview({ model, t }: Props) {
     const handleSaveBaseline = () => {
         store.setField("baselineTokens", compiledTokens);
     };
+
+    const flashCopied = (kind: string) => {
+        setCopiedKind(kind);
+        setTimeout(() => setCopiedKind(null), 1600);
+    };
+
+    const copyText = async (label: string, text: string) => {
+        await navigator.clipboard.writeText(text);
+        flashCopied(label);
+    };
+
+    const handleZip = () => {
+        downloadFile(buildHandoffZipBlob(model), "preprompt-handoff.zip");
+    };
+
+    const intent = model.deepPlan?.intentRouting;
 
     return (
         <div className="flex flex-col h-full">
@@ -83,30 +111,120 @@ export function PromptPreview({ model, t }: Props) {
             </div>
 
             {/* Token Estimation Bar */}
-            <div className="flex items-center gap-4 px-4 py-2.5 bg-muted/40 border-b border-border text-xs">
-                <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
-                    <BarChart2Icon className="h-3.5 w-3.5" />
-                    <span>{t.tokens}</span>
+            <div className="flex flex-col gap-2 px-4 py-2.5 bg-muted/40 border-b border-border text-xs">
+                <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                        <BarChart2Icon className="h-3.5 w-3.5" />
+                        <span>{t.tokens}</span>
+                    </div>
+                    <div className="flex gap-4 font-mono text-[11px] flex-wrap">
+                        <div className="flex gap-1.5">
+                            <span className="text-muted-foreground">
+                                {model.baselineTokens !== null ? t.baseline : t.draft}:
+                            </span>
+                            <span className="text-foreground font-semibold">{referenceTokens}</span>
+                        </div>
+                        <div className="flex gap-1.5">
+                            <span className="text-muted-foreground">{t.structured}:</span>
+                            <span className="text-foreground font-semibold">{isEmpty ? 0 : compiledTokens}</span>
+                        </div>
+                        {!isEmpty && isSaved && (
+                            <div className="flex gap-1.5 text-green-600 font-semibold">Diff: -{savedTokens}</div>
+                        )}
+                        {!isEmpty && !isSaved && savedTokens < 0 && (
+                            <div className="flex gap-1.5 text-amber-600 font-semibold">Diff: +{Math.abs(savedTokens)}</div>
+                        )}
+                    </div>
+                    {intent && (
+                        <div className="text-[10px] text-muted-foreground font-mono">
+                            {t.intentLabel}:{" "}
+                            <span className="text-foreground font-semibold">{intent.category}</span> (
+                            {intent.confidence01.toFixed(2)})
+                        </div>
+                    )}
                 </div>
-                <div className="flex gap-4 font-mono text-[11px]">
-                    <div className="flex gap-1.5" title={model.baselineTokens !== null ? "Tokens saved as your baseline" : "Tokens consumed by your initial natural prompt"}>
-                        <span className="text-muted-foreground">{model.baselineTokens !== null ? t.baseline : t.draft}:</span>
-                        <span className="text-foreground font-semibold">{referenceTokens}</span>
-                    </div>
-                    <div className="flex gap-1.5" title="Tokens consumed by the structured prompt">
-                        <span className="text-muted-foreground">{t.structured}:</span>
-                        <span className="text-foreground font-semibold">{isEmpty ? 0 : compiledTokens}</span>
-                    </div>
-                    {!isEmpty && isSaved && (
-                        <div className="flex gap-1.5 text-green-600 font-semibold" title="Tokens saved by structuring">
-                            Diff: -{savedTokens}
-                        </div>
-                    )}
-                    {!isEmpty && !isSaved && savedTokens < 0 && (
-                        <div className="flex gap-1.5 text-amber-600 font-semibold" title="Added explicit context">
-                            Diff: +{Math.abs(savedTokens)}
-                        </div>
-                    )}
+            </div>
+
+            {/* Handoff export */}
+            <div className="px-4 py-2 border-b border-border bg-muted/20 space-y-2 shrink-0">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t.exportTitle}</p>
+                <div className="flex flex-wrap gap-1.5">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1"
+                        disabled={isEmpty}
+                        onClick={handleZip}
+                    >
+                        <DownloadIcon className="h-3 w-3" />
+                        {t.downloadZip}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px]"
+                        disabled={isEmpty}
+                        onClick={() =>
+                            downloadTextFile(buildSpecMarkdown(model), "SPEC.md", "text/markdown;charset=utf-8")
+                        }
+                    >
+                        {t.downloadSpec}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px]"
+                        disabled={isEmpty}
+                        onClick={() =>
+                            downloadTextFile(
+                                JSON.stringify(buildTaskPayload(model), null, 2),
+                                "preprompt.task.json",
+                                "application/json;charset=utf-8"
+                            )
+                        }
+                    >
+                        {t.downloadTaskJson}
+                    </Button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[11px]"
+                        disabled={isEmpty}
+                        onClick={() => copyText("cursor", buildCursorRulesMarkdown(model))}
+                    >
+                        {copiedKind === "cursor" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
+                        <span className="ml-1">{t.copyCursorRules}</span>
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[11px]"
+                        disabled={isEmpty}
+                        onClick={() => copyText("agents", buildAgentsMarkdownSnippet(model))}
+                    >
+                        {copiedKind === "agents" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
+                        <span className="ml-1">{t.copyAgents}</span>
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-[11px]"
+                        disabled={isEmpty}
+                        onClick={() =>
+                            copyText("one", buildChatOneLiner(model, model.language === "ko" ? "ko" : "en"))
+                        }
+                    >
+                        {copiedKind === "one" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
+                        <span className="ml-1">{copiedKind === "one" ? t.copiedOneLiner : t.copyOneLiner}</span>
+                    </Button>
                 </div>
             </div>
 
@@ -121,7 +239,7 @@ export function PromptPreview({ model, t }: Props) {
                 ) : (
                     SECTION_KEYS.map((key) => {
                         const val = model[key] as string;
-                        if (!val || typeof val !== 'string' || !val.trim()) return null;
+                        if (!val || typeof val !== "string" || !val.trim()) return null;
                         return (
                             <div key={key} className="space-y-1">
                                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">

@@ -1,3 +1,4 @@
+import type { DeepPlan } from "@/lib/deepPlan";
 import { Language } from "@/lib/i18n";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -13,10 +14,16 @@ export type CognitiveModel = {
     language: Language;
     isGenerating?: boolean; // Ephemeral state
     baselineTokens: number | null;
+    /** Pass A deep plan (null until Auto-Structure runs with two-pass). */
+    deepPlan: DeepPlan | null;
+    /** Reported total tokens (Pass A + Pass B) from Gemini usageMetadata when available. */
+    orchestrationTokenTotal: number | null;
+    /** Shorter Pass A/B when true (fewer checklist bullets). */
+    compactPlanning: boolean;
 };
 
 type PromptStore = CognitiveModel & {
-    setField: (field: keyof CognitiveModel, value: string | boolean | number | null) => void;
+    setField: <K extends keyof CognitiveModel>(field: K, value: CognitiveModel[K]) => void;
     reset: () => void;
 };
 
@@ -28,9 +35,12 @@ const initialState: CognitiveModel = {
     actionSlice: "",
     responseContract: "",
     apiKey: "",
-    language: "en",
+    language: "ko",
     isGenerating: false,
     baselineTokens: null,
+    deepPlan: null,
+    orchestrationTokenTotal: null,
+    compactPlanning: false,
 };
 
 export const usePromptStore = create<PromptStore>()(
@@ -43,6 +53,16 @@ export const usePromptStore = create<PromptStore>()(
         }),
         {
             name: "preprompt-storage", // Key in localStorage
+            merge: (persisted, current) => {
+                const p = (persisted ?? {}) as Partial<CognitiveModel>;
+                return {
+                    ...current,
+                    ...p,
+                    deepPlan: p.deepPlan ?? null,
+                    orchestrationTokenTotal: p.orchestrationTokenTotal ?? null,
+                    compactPlanning: p.compactPlanning ?? false,
+                };
+            },
         }
     )
 );
@@ -52,13 +72,18 @@ export function estimateTokens(text: string): number {
     return Math.ceil(text.length / 4);
 }
 
-export function compileToPrompt(model: Omit<CognitiveModel, "naturalPrompt" | "apiKey" | "language" | "isGenerating">): string {
+export function compileToPrompt(
+    model: Omit<
+        CognitiveModel,
+        "naturalPrompt" | "apiKey" | "language" | "isGenerating" | "deepPlan" | "orchestrationTokenTotal" | "compactPlanning"
+    >
+): string {
     return [
-        `Goal:\n${model.intentLock}`,
-        `Current State:\n${model.realityAnchor}`,
-        `Constraints:\n${model.constraintCage}`,
-        `Current Task:\n${model.actionSlice}`,
-        `Response Requirements:\n${model.responseContract}`,
+        `Success criteria:\n${model.intentLock}`,
+        `Ground (facts):\n${model.realityAnchor}`,
+        `Hard rules:\n${model.constraintCage}`,
+        `Handoff scope:\n${model.actionSlice}`,
+        `Output format:\n${model.responseContract}`,
     ]
         .filter((section) => section.split("\n")[1].trim() !== "")
         .join("\n\n");
