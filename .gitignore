@@ -22,6 +22,9 @@
 
 # misc
 .DS_Store
+
+# local server logs (start.sh)
+/log/
 *.pem
 
 # debug

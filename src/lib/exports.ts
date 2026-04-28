@@ -1,4 +1,9 @@
-import { type DeepPlan, deepPlanToSpecMarkdown } from "@/lib/deepPlan";
+import {
+    type DeepPlan,
+    type ImplementationBlueprint,
+    type TechnicalApproach,
+    deepPlanToSpecMarkdown,
+} from "@/lib/deepPlan";
 import { type CognitiveModel, compileToPrompt } from "@/store/usePromptStore";
 import { strToU8, zipSync } from "fflate";
 
@@ -8,6 +13,10 @@ export type TaskPayload = {
     intentRouting: DeepPlan["intentRouting"] | null;
     assumptions: string[];
     definitionOfDone: string[];
+    /** Languages, frameworks, infra — mirrors SPEC.md "Technical stack & platform". */
+    technicalApproach: TechnicalApproach | null;
+    /** Paths, schema, APIs, build order — mirrors SPEC.md "Implementation blueprint". */
+    implementationBlueprint: ImplementationBlueprint | null;
     compiledPrompt: string;
     orchestrationTokenTotal: number | null;
     naturalPrompt: string;
@@ -20,6 +29,8 @@ export function buildTaskPayload(model: CognitiveModel): TaskPayload {
         intentRouting: model.deepPlan?.intentRouting ?? null,
         assumptions: model.deepPlan?.assumptions ?? [],
         definitionOfDone: model.deepPlan?.definitionOfDone ?? [],
+        technicalApproach: model.deepPlan?.technicalApproach ?? null,
+        implementationBlueprint: model.deepPlan?.implementationBlueprint ?? null,
         compiledPrompt: compileToPrompt(model),
         orchestrationTokenTotal: model.orchestrationTokenTotal,
         naturalPrompt: model.naturalPrompt,
@@ -101,8 +112,8 @@ export function buildHandoffZipBlob(model: CognitiveModel): Blob {
     const files: Record<string, Uint8Array> = {
         "SPEC.md": strToU8(buildSpecMarkdown(model)),
         "preprompt.task.json": strToU8(JSON.stringify(buildTaskPayload(model), null, 2)),
-        "cursor-rules.preprompt.md": strToU8(buildCursorRulesMarkdown(model)),
-        "AGENTS.preprompt.md": strToU8(buildAgentsMarkdownSnippet(model)),
+        "preprompt-handoff.mdc": strToU8(buildCursorRulesMarkdown(model)),
+        "AGENTS.md": strToU8(buildAgentsMarkdownSnippet(model)),
         "CHAT_MESSAGE.txt": strToU8(buildChatOneLiner(model, model.language === "ko" ? "ko" : "en")),
     };
     const zipped = zipSync(files, { level: 6 });

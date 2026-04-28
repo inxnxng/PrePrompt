@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import {
     buildAgentsMarkdownSnippet,
     buildChatOneLiner,
     buildCursorRulesMarkdown,
@@ -13,13 +21,31 @@ import {
 } from "@/lib/exports";
 import { Translation } from "@/lib/i18n";
 import { CognitiveModel, compileToPrompt, estimateTokens, usePromptStore } from "@/store/usePromptStore";
-import { BarChart2Icon, BookmarkIcon, CheckIcon, CopyIcon, DownloadIcon } from "lucide-react";
+import {
+    BarChart2Icon,
+    BookmarkIcon,
+    CheckIcon,
+    ClipboardPasteIcon,
+    CopyIcon,
+    FileJsonIcon,
+    FileTextIcon,
+    PackageIcon,
+} from "lucide-react";
 import { useState } from "react";
 
 type Props = {
     model: CognitiveModel;
     t: Translation;
 };
+
+/** Fixed layout: filenames must match downloads and ZIP contents. */
+const HANDOFF_LAYOUT_TREE = `./
+├── SPEC.md
+├── preprompt.task.json
+├── AGENTS.md
+└── .cursor/
+    └── rules/
+        └── preprompt-handoff.mdc`;
 
 const SECTION_KEYS: (keyof Translation["sectionLabels"])[] = [
     "intentLock",
@@ -32,7 +58,8 @@ const SECTION_KEYS: (keyof Translation["sectionLabels"])[] = [
 export function PromptPreview({ model, t }: Props) {
     const store = usePromptStore();
     const [copied, setCopied] = useState(false);
-    const [copiedKind, setCopiedKind] = useState<string | null>(null);
+    const [copiedOneLiner, setCopiedOneLiner] = useState(false);
+    const [pathGuideOpen, setPathGuideOpen] = useState(false);
 
     const compiled = compileToPrompt(model);
     const isEmpty = compiled.trim() === "";
@@ -53,14 +80,12 @@ export function PromptPreview({ model, t }: Props) {
         store.setField("baselineTokens", compiledTokens);
     };
 
-    const flashCopied = (kind: string) => {
-        setCopiedKind(kind);
-        setTimeout(() => setCopiedKind(null), 1600);
-    };
-
-    const copyText = async (label: string, text: string) => {
-        await navigator.clipboard.writeText(text);
-        flashCopied(label);
+    const copyOneLiner = async () => {
+        await navigator.clipboard.writeText(
+            buildChatOneLiner(model, model.language === "ko" ? "ko" : "en")
+        );
+        setCopiedOneLiner(true);
+        setTimeout(() => setCopiedOneLiner(false), 1600);
     };
 
     const handleZip = () => {
@@ -146,86 +171,148 @@ export function PromptPreview({ model, t }: Props) {
             </div>
 
             {/* Handoff export */}
-            <div className="px-4 py-2 border-b border-border bg-muted/20 space-y-2 shrink-0">
+            <div className="shrink-0 border-b border-border bg-muted/20 px-4 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t.exportTitle}</p>
-                <div className="flex flex-wrap gap-1.5">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="h-7 text-[11px] gap-1"
-                        disabled={isEmpty}
-                        onClick={handleZip}
-                    >
-                        <DownloadIcon className="h-3 w-3" />
-                        {t.downloadZip}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-[11px]"
-                        disabled={isEmpty}
-                        onClick={() =>
-                            downloadTextFile(buildSpecMarkdown(model), "SPEC.md", "text/markdown;charset=utf-8")
-                        }
-                    >
-                        {t.downloadSpec}
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-[11px]"
-                        disabled={isEmpty}
-                        onClick={() =>
-                            downloadTextFile(
-                                JSON.stringify(buildTaskPayload(model), null, 2),
-                                "preprompt.task.json",
-                                "application/json;charset=utf-8"
-                            )
-                        }
-                    >
-                        {t.downloadTaskJson}
-                    </Button>
+                <div className="mt-2.5 rounded-lg border border-border/80 bg-background/70 p-2.5 shadow-sm space-y-3">
+                    <div className="space-y-1.5">
+                        <p className="text-[10px] font-medium text-muted-foreground">{t.exportGroupFiles}</p>
+                        <Button
+                            type="button"
+                            variant="default"
+                            size="sm"
+                            className="h-8 w-full justify-start gap-2 text-xs shadow-none"
+                            disabled={isEmpty}
+                            onClick={handleZip}
+                        >
+                            <PackageIcon className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
+                            <span className="truncate">{t.downloadZip}</span>
+                        </Button>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start gap-1.5 px-2 text-[11px] font-normal"
+                                disabled={isEmpty}
+                                onClick={() =>
+                                    downloadTextFile(buildSpecMarkdown(model), "SPEC.md", "text/markdown;charset=utf-8")
+                                }
+                            >
+                                <FileTextIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span className="truncate">{t.downloadSpec}</span>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start gap-1.5 px-2 text-[11px] font-normal"
+                                disabled={isEmpty}
+                                onClick={() =>
+                                    downloadTextFile(
+                                        JSON.stringify(buildTaskPayload(model), null, 2),
+                                        "preprompt.task.json",
+                                        "application/json;charset=utf-8"
+                                    )
+                                }
+                            >
+                                <FileJsonIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span className="truncate">{t.downloadTaskJson}</span>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start gap-1.5 px-2 text-[11px] font-normal"
+                                disabled={isEmpty}
+                                onClick={() =>
+                                    downloadTextFile(
+                                        buildCursorRulesMarkdown(model),
+                                        "preprompt-handoff.mdc",
+                                        "text/markdown;charset=utf-8"
+                                    )
+                                }
+                            >
+                                <FileTextIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span className="truncate">{t.downloadCursorRules}</span>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 justify-start gap-1.5 px-2 text-[11px] font-normal"
+                                disabled={isEmpty}
+                                onClick={() =>
+                                    downloadTextFile(
+                                        buildAgentsMarkdownSnippet(model),
+                                        "AGENTS.md",
+                                        "text/markdown;charset=utf-8"
+                                    )
+                                }
+                            >
+                                <FileTextIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span className="truncate">{t.downloadAgentsMd}</span>
+                            </Button>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-full px-2 text-[11px] font-normal text-muted-foreground hover:text-foreground"
+                            onClick={() => setPathGuideOpen(true)}
+                        >
+                            {t.exportPathGuide}
+                        </Button>
+                    </div>
+                    <div className="h-px bg-border/70" role="separator" />
+                    <div className="space-y-1.5">
+                        <p className="text-[10px] font-medium text-muted-foreground">{t.exportGroupChat}</p>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-full justify-start gap-2 px-2 text-[11px] font-normal"
+                            disabled={isEmpty}
+                            onClick={copyOneLiner}
+                        >
+                            {copiedOneLiner ? (
+                                <CheckIcon className="h-3.5 w-3.5 shrink-0 text-green-600" />
+                            ) : (
+                                <ClipboardPasteIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            )}
+                            <span className="min-w-0 flex-1 truncate text-left">
+                                {copiedOneLiner ? t.copiedOneLiner : t.copyOneLiner}
+                            </span>
+                        </Button>
+                    </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[11px]"
-                        disabled={isEmpty}
-                        onClick={() => copyText("cursor", buildCursorRulesMarkdown(model))}
-                    >
-                        {copiedKind === "cursor" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
-                        <span className="ml-1">{t.copyCursorRules}</span>
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[11px]"
-                        disabled={isEmpty}
-                        onClick={() => copyText("agents", buildAgentsMarkdownSnippet(model))}
-                    >
-                        {copiedKind === "agents" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
-                        <span className="ml-1">{t.copyAgents}</span>
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[11px]"
-                        disabled={isEmpty}
-                        onClick={() =>
-                            copyText("one", buildChatOneLiner(model, model.language === "ko" ? "ko" : "en"))
-                        }
-                    >
-                        {copiedKind === "one" ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
-                        <span className="ml-1">{copiedKind === "one" ? t.copiedOneLiner : t.copyOneLiner}</span>
-                    </Button>
-                </div>
+                <Dialog open={pathGuideOpen} onOpenChange={setPathGuideOpen}>
+                    <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>{t.exportPathGuideTitle}</DialogTitle>
+                            <DialogDescription className="text-left">{t.exportPathGuideIntro}</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                            <div className="rounded-md border border-border bg-muted/30 px-3 py-2.5 overflow-x-auto">
+                                <pre
+                                    className="text-[11px] sm:text-xs font-mono leading-relaxed text-foreground whitespace-pre select-all"
+                                    aria-label="Handoff folder tree"
+                                >
+                                    {HANDOFF_LAYOUT_TREE}
+                                </pre>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{t.exportPathGuideKeepNames}</p>
+                            <div className="space-y-1.5 rounded-md border border-border/80 bg-background/80 px-3 py-2.5">
+                                <p className="text-xs font-semibold text-foreground">{t.exportPathGuideZipTitle}</p>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{t.exportPathGuideZipBody}</p>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="default" size="sm" onClick={() => setPathGuideOpen(false)}>
+                                {t.alertDialogOk}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             {/* Sections preview */}

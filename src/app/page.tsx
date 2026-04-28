@@ -42,6 +42,7 @@ export default function HomePage() {
     actionSlice: store.actionSlice,
     responseContract: store.responseContract,
     apiKey: store.apiKey,
+    llmProvider: store.llmProvider,
     language: store.language,
     isGenerating: store.isGenerating,
     baselineTokens: store.baselineTokens,
@@ -116,7 +117,7 @@ export default function HomePage() {
   };
 
   const handleAutoStructure = async () => {
-    if (!model.apiKey) {
+    if (store.llmProvider === "gemini" && !model.apiKey.trim()) {
       showAppAlert(t.alertDialogNoticeTitle, t.alertNoApiKey);
       return;
     }
@@ -127,6 +128,7 @@ export default function HomePage() {
       const structured = await generateStructuredPrompt(model.naturalPrompt, model.apiKey, {
         compactPlanning: store.compactPlanning,
         language: model.language,
+        provider: store.llmProvider,
       });
 
       // Update store with generated fields

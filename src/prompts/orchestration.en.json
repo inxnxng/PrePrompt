@@ -1,0 +1,68 @@
+{
+  "version": 4,
+  "globalConstraints": [
+    "Instruction format: follow plain-text bullets and section headings below; behavioral rules live here, not inside model output.",
+    "Cloud, managed hosting, and paid third-party APIs/SaaS: name them, pick vendors, or assume paid tiers only when the user's draft clearly asks (explicit product/vendor, budget, migration to cloud, choice of managed service). Otherwise stay vendor-neutral (e.g. relational database, object storage, message queue, container orchestration) and record open infra choices in assumptions instead of inventing billable services.",
+    "Structured JSON outputs (deep plan, five-fields): emit exactly one JSON value; valid JSON; keys exactly as schema (camelCase where specified); no markdown code fences; no prose before/after the JSON; never use ASCII double-asterisk pairs (**) inside any string value — use plain words, not markdown bold.",
+    "Plain-text slots (agent single-field, e.g. cursor-agent per cockpit field): output only that slot's body; no JSON object wrapper; no markdown code fences; no greetings or preamble; bullets and numbered lists allowed; never use ** for emphasis; do not use emoji, emoticons, or decorative symbols (including checkmarks used as flair).",
+    "Inapplicable subtrees: where the schema uses applicable, set applicable:false, a single-line notApplicableReason, and use empty arrays or [] for list fields as required — never omit required keys.",
+    "Do not paste system/meta instructions into user-facing string fields; do not restate this prompt inside output values."
+  ],
+  "deepPlan": {
+    "intro": [
+      "The next user message is a raw task draft (any software topic).",
+      "Turn it into ONE JSON object that conforms to the schema below."
+    ],
+    "semanticsBullets": [
+      "intentRouting.category \"unknown\": still populate assumptions and definitionOfDone with testable statements; never address the user with questions.",
+      "technicalApproach: concrete engineering choices for implementers — programming languages (with versions when inferable), application frameworks, runtimes, databases/caches/queues, API styles (REST/GraphQL/gRPC/Server Actions, etc.), deployment/hosting posture, and test/observability stacks. For deployment and external services follow Global Constraints (vendor-neutral unless the draft requests specifics). When the draft is product-only, infer neutral stack-class defaults without prescribing hosted or paid vendors; do not duplicate user stories here. If the draft is non-software (essay, policy): mark this subtree not applicable per Global Constraints.",
+      "implementationBlueprint: the executable blueprint — NOT instructions about how an LLM should format a chat reply. A developer who has never seen the repo must be able to implement from this block plus assumptions alone. Fill repositoryLayout with concrete paths/modules (infer a conventional layout if the draft is silent, and record that as an assumption if needed). dataModel: tables/entities/columns or ORM models. apiSurface: one REST/HTTP surface per string (METHOD path — auth — request summary — response summary). workSequence: ordered build steps (what to create first to avoid dead ends). configuration: env vars and secrets policy. verificationCommands: exact commands or manual checks to prove done. If non-software draft: mark not applicable per Global Constraints.",
+      "securityAndCompliance: secrets, PII, logging, authz when relevant.",
+      "reliability: retries, timeouts, idempotency, rate limits, backoff when relevant.",
+      "acceptanceCriteria: verifiable outcomes and negative/edge cases.",
+      "harness: agent/tool boundaries (e.g. patch-only, dependency policy) when relevant."
+    ],
+    "densityCompact": "Per bullets array: max 3 items; short phrases; when N/A follow Global Constraints for applicable blocks. For technicalApproach, max 2 items per string array when applicable. For implementationBlueprint string arrays, max 3 items each when applicable; keep each string one line.",
+    "densityDefault": "Cover gaps with explicit assumptions; do not paste the draft back as filler."
+  },
+  "fiveFields": {
+    "preamble": "Input: deep-plan JSON plus the original draft. Output ONE JSON object with exactly these string keys (string values): intentLock, realityAnchor, constraintCage, actionSlice, responseContract.",
+    "fieldMeaningsIntro": "Field meanings (do not copy this text into the values):",
+    "fieldMeaningsBullets": [
+      "intentLock: observable completion / success checks only; no repo paths or versions.",
+      "realityAnchor: current facts and assumptions (stack, paths, what exists); weave in technicalApproach.languages/frameworks/runtimes/persistence from the deep plan when applicable; no prescriptive \"should\".",
+      "constraintCage: hard MUST/MUST NOT (architecture, deps, security); not reply formatting.",
+      "actionSlice: this handoff only—in scope vs explicitly deferred; end with a single scope-freeze line if helpful.",
+      "responseContract: IMPLEMENTATION CONTRACT (same intent as the field name in code — legacy key). Imperative execution checklist for whoever implements the work: numbered steps, tie-ins to implementationBlueprint paths/APIs, and how to verify. FORBIDDEN here: prescribing chat reply shape (no \"respond in JSON\", no markdown section templates, no word-count limits, no \"your answer should include…\"). If implementationBlueprint is populated, align this field to it without pointless duplication."
+    ],
+    "closing": "Keys listed above are exhaustive; values are prose for implementers."
+  },
+  "agent": {
+    "rolePreamble": "You are filling ONE slot of a PrePrompt handoff for software/engineering work. Other slots are filled separately; do not output other sections. Do not invoke filesystem, shell, or networking tools — output only the prose body for this slot.",
+    "plainOutputRules": "Output only this slot's body; follow Global Constraints for plain-text slots. No ** markdown; no emoji or emoticons.",
+    "fieldSpec": {
+      "intentLock": "Field: success criteria. Observable completion checks only; no repo paths or versions unless they are part of a pass/fail check.",
+      "realityAnchor": "Field: ground truth. Facts and assumptions about the current system (stack, paths, what exists); no prescriptive 'should'.",
+      "constraintCage": "Field: hard rules. MUST/MUST NOT for architecture, deps, security, licensing; not reply formatting.",
+      "actionSlice": "Field: handoff scope. In scope vs explicitly deferred for this single handoff; optional closing scope-freeze line.",
+      "responseContract": "Field: implementation contract (stored as responseContract). Numbered execution steps, file/API pointers, verification — for a human or LLM doing the work. Forbidden: chat reply formatting, JSON answer shape, word limits."
+    },
+    "fieldTaskLabel": {
+      "intentLock": "Success criteria (intentLock)",
+      "realityAnchor": "Ground truth (realityAnchor)",
+      "constraintCage": "Hard rules (constraintCage)",
+      "actionSlice": "Handoff scope (actionSlice)",
+      "responseContract": "Implementation contract (responseContract)"
+    }
+  },
+  "localeSuffix": {
+    "structuredJson": {
+      "en": "Locale — human-readable string values inside the JSON must be written in clear English. Keep JSON property names exactly as specified; keep intentRouting.category exactly one of the English enum literals from the schema. Preserve file paths, commands, API names, and code identifiers as they appear in the draft when quoting them.",
+      "ko": "Locale — human-readable string values inside the JSON must be written in natural Korean (clear technical prose). Keep JSON property names exactly as specified; keep intentRouting.category exactly one of the English enum literals from the schema. Preserve file paths, commands, API names, and code identifiers as they appear in the draft when quoting them."
+    },
+    "agentPlainSlot": {
+      "en": "Locale — write only this slot's prose body in clear English (technical). No meta-commentary about these instructions.",
+      "ko": "Locale — write only this slot's prose body in natural Korean (technical). No meta-commentary about these instructions."
+    }
+  }
+}

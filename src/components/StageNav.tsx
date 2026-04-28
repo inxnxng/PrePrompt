@@ -8,6 +8,7 @@ import { CheckIcon } from "lucide-react";
 export type StageKey = Exclude<
     keyof CognitiveModel,
     | "apiKey"
+    | "llmProvider"
     | "language"
     | "isGenerating"
     | "baselineTokens"

@@ -44,6 +44,11 @@ export type Translation = {
     geminiApiKeyHintAfter: string;
     geminiApiKeyShow: string;
     geminiApiKeyHide: string;
+    llmProvider: string;
+    llmProviderGemini: string;
+    llmProviderCursorAgent: string;
+    /** Shown when Cursor Agent is selected: local CLI, server subprocess, env vars */
+    cursorAgentHint: string;
     language: string;
     cancel: string;
     saveChanges: string;
@@ -85,13 +90,29 @@ export type Translation = {
     };
     // Handoff export
     exportTitle: string;
+    /** Subheading above file download actions (SPEC, task, rules, ZIP, etc.) */
+    exportGroupFiles: string;
+    /** Subheading for the chat one-liner (clipboard only) */
+    exportGroupChat: string;
     downloadZip: string;
     downloadSpec: string;
     downloadTaskJson: string;
-    copyCursorRules: string;
-    copyAgents: string;
+    downloadCursorRules: string;
+    /** Handoff file saved at repo root as AGENTS.md */
+    downloadAgentsMd: string;
     copyOneLiner: string;
     copiedOneLiner: string;
+    /** Opens dialog explaining target paths in the repo */
+    exportPathGuide: string;
+    exportPathGuideTitle: string;
+    /** One line above the folder tree */
+    exportPathGuideIntro: string;
+    /** Reminder: keep filenames, only match paths */
+    exportPathGuideKeepNames: string;
+    /** Subheading for ZIP explanation */
+    exportPathGuideZipTitle: string;
+    /** What the ZIP contains vs single files; one-shot workflow */
+    exportPathGuideZipBody: string;
     intentLabel: string;
     // Token story (PoC — only rounds adjustable)
     tokenScenarioTitle: string;
@@ -147,13 +168,18 @@ const en: Translation = {
     settingsTitle: "Settings",
     settingsDesc: "Configure your API keys and preferences.",
     settingsSecurity:
-        "Your API key is kept in this browser (local storage). Auto-Structure calls go through this app's /api/gemini route: the key is sent to your server only for that request to reach Google and is not stored by the app. Do not use a production key if you do not trust the deployment.",
+       "Your API key stays in this browser (local storage). It is sent to your deployment's /api/gemini only for that request and is not stored by the app. Do not use production secrets if you do not trust the environment.",
     geminiApiKey: "Gemini API Key",
-    geminiApiKeyPlaceholder: "Paste key from Google AI Studio (often starts with AIza…)",
+    geminiApiKeyPlaceholder: "Paste key from Google AI Studio",
     geminiApiKeyHintBefore: 'Used for the "Auto-Structure" feature. Get your key at ',
     geminiApiKeyHintAfter: ".",
     geminiApiKeyShow: "Show API key",
     geminiApiKeyHide: "Hide API key",
+    llmProvider: "Auto-Structure backend",
+    llmProviderGemini: "Google Gemini",
+    llmProviderCursorAgent: "Cursor Agent (local CLI)",
+    cursorAgentHint:
+        "Auto-Structure calls `cursor-agent` on the Next.js server (Node). Install the Cursor CLI on that machine, run `cursor-agent login`, then start the app with `npm run dev`.",
     language: "Language",
     cancel: "Cancel",
     saveChanges: "Save changes",
@@ -192,7 +218,7 @@ const en: Translation = {
             bad: "Make a login system.",
             good: "- Email/password authentication flow.\n- JWT issued on success, stored in httpOnly cookie.\n- No session storage used.\n- Redirect to /dashboard on login.",
             tips: [
-                "If a line is a fact about today’s repo (“we already have…”), move it to Ground truth.",
+                "If a line is a fact about today's repo (“we already have…”), move it to Ground truth.",
                 "If a line is a rule (“never install deps”), move it to Hard rules.",
                 "If a line is “not part of this handoff,” move it to Handoff scope—not here.",
             ],
@@ -214,13 +240,13 @@ const en: Translation = {
             label: "Hard rules",
             description: "Non-negotiables for the work itself",
             placeholder:
-                "Solution constraints only—things that would void the work if violated.\n\n- MUST / MUST NOT / NEVER / ONLY\n- Security, privacy, licensing, compatibility, deps\n- Lint/architecture bans\n\nDo not put reply formatting here; that is Output format.",
+                "Solution constraints only—things that would void the work if violated.\n\n- MUST / MUST NOT / NEVER / ONLY\n- Security, privacy, licensing, compatibility, deps\n- Lint/architecture bans\n\nDo not put step-by-step file/API plans here — those belong in Auto-Structure's implementation blueprint and in the Implementation contract field.",
             bad: "Make the code clean and fast.\nUse whatever library you think is best.",
             good: "- MUST use Next.js App Router only. No Pages Router.\n- MUST NOT install new npm packages.\n- STRICTLY use Tailwind CSS. No custom CSS files.\n- NEVER modify /prisma/schema.prisma.\n- Avoid class components entirely.",
             tips: [
                 "NEVER / MUST NOT beat “try to avoid” when the prohibition is real.",
                 "Name one valid-but-unwanted approach and forbid it in one sentence.",
-                "Keep layout-of-answer rules out of this box.",
+                "Keep chat-reply styling out of this box — use Implementation contract for build order.",
             ],
         },
         actionSlice: {
@@ -237,16 +263,16 @@ const en: Translation = {
             ],
         },
         responseContract: {
-            label: "Output format",
-            description: "Shape of the model’s reply only",
+            label: "Implementation contract",
+            description: "Ordered execution checklist (not chat reply shape)",
             placeholder:
-                "Message layout only—sections, fences, length, language.\n\n- Section order (summary → steps → code)\n- Prose vs tables vs fenced blocks\n- Banned fluff (no preamble, no permission-seeking)\n\nDo not repeat product rules from Hard rules here unless you need them echoed in the answer layout.",
-            bad: "Just give me the code.",
-            good: "- Output as a single unified diff (git diff format).\n- Include ONLY the changed files.\n- No explanatory prose before or after the diff.\n- Add inline comments for any regex patterns.\n- If a file is unchanged, omit it entirely.",
+                "What to build, in what order, where, and how to prove it — for someone who only reads this handoff.\n\n- Numbered steps tied to paths and APIs\n- Point to SPEC implementation blueprint sections\n- Verification commands or checks\n\nForbidden: 'respond in JSON', markdown templates for an LLM answer, word limits, or meta 'your reply should…'.",
+            bad: "Answer in JSON with keys summary, stack, next steps.",
+            good: "1) Add prisma models + migration per SPEC data model.\n2) Implement POST /api/event/spin with row locks as in SPEC.\n3) Wire src/app/event/page.tsx to the API; show win/lose copy from assumptions.\n4) Run pnpm test && pnpm lint; manual curl in SPEC verification section.",
             tips: [
-                "Fixed ordering makes skim-copying predictable.",
-                "Ban intros, apologies, and long alternative stacks explicitly.",
-                "Optional: short self-review checklist at the end—still about format, not new requirements.",
+                "If Auto-Structure filled an implementation blueprint, echo its order here in imperative form.",
+                "Every step should be falsifiable (a reviewer can say done/not done).",
+                "Keep chat-formatting rules out — this is build instructions, not prose styling.",
             ],
         },
     },
@@ -255,16 +281,25 @@ const en: Translation = {
         realityAnchor: "Ground (facts)",
         constraintCage: "Hard rules",
         actionSlice: "Handoff scope",
-        responseContract: "Output format",
+        responseContract: "Implementation contract",
     },
     exportTitle: "Agent handoff",
+    exportGroupFiles: "Save as files",
+    exportGroupChat: "Paste in chat",
     downloadZip: "ZIP bundle",
     downloadSpec: "SPEC.md",
     downloadTaskJson: "preprompt.task.json",
-    copyCursorRules: "Copy .cursor rules",
-    copyAgents: "Copy AGENTS.md",
+    downloadCursorRules: "Cursor rule (.mdc)",
+    downloadAgentsMd: "AGENTS.md",
     copyOneLiner: "Copy chat one-liner",
     copiedOneLiner: "Copied one-liner",
+    exportPathGuide: "Where to place files",
+    exportPathGuideTitle: "Folder layout (fixed paths)",
+    exportPathGuideIntro: "Put files in your repo so it matches this tree (root = your project folder):",
+    exportPathGuideKeepNames: "Keep every filename exactly as shown—only create the folders and drop the files.",
+    exportPathGuideZipTitle: "ZIP bundle",
+    exportPathGuideZipBody:
+        "The ZIP already contains the same files with the same names. Unzip once, then copy them into your project following the tree—use either the ZIP or the individual downloads, not both. It also includes CHAT_MESSAGE.txt (same text as the chat one-liner) as an on-disk copy; pasting the one-liner into chat is still how you kick things off.",
     intentLabel: "Intent",
     tokenScenarioTitle: "Why this saves tokens",
     tokenRounds: "Assumed ping-pong rounds",
@@ -277,11 +312,11 @@ const en: Translation = {
     tokenIllustrativeLabel: "Illustrative avoided input tokens",
     tokenPocDisclaimer: "Only the round count is adjustable; other values stay fixed for this demo story.",
     compactPlanning: "Minimal deep plan (fewer bullets)",
-    compactPlanningHint: "Smaller Pass A output; less detail in checklists.",
+    compactPlanningHint: "Smaller deep-plan step output; less detail in checklists.",
     about: {
         title: "About PrePrompt",
         description:
-            "PrePrompt is a Pre-AI Cognitive Layer: a structured pass before you send work to an AI. Five fields hold different kinds of information—success checks, ground facts, hard rules for the solution, the boundary of this single handoff (so harnesses or sub-agents can subdivide without pulling you into more clarification rounds), and output format for the reply.\nThe aim is less token-heavy ping-pong, less scope drift, and clearer control over what you actually asked for.",
+            "PrePrompt is a Pre-AI Cognitive Layer: a structured pass before you send work to an AI. Five fields hold different kinds of information—success checks, ground facts, hard rules for the solution, the boundary of this single handoff (so harnesses or sub-agents can subdivide without pulling you into more clarification rounds), and an implementation contract (ordered build/verify steps — not 'how the chat reply should look').\nAuto-Structure also emits a technical stack and an implementation blueprint (paths, data model, APIs) into SPEC / task JSON so a newcomer can execute without guessing.\nThe aim is less token-heavy ping-pong, less scope drift, and clearer control over what you actually asked for.",
         howToUseTitle: "How to use PrePrompt",
         backToHome: "Back to Home",
         link: "About / Guide",
@@ -321,13 +356,18 @@ const ko: Translation = {
     settingsTitle: "설정",
     settingsDesc: "API 키 및 환경설정을 관리합니다.",
     settingsSecurity:
-        "API 키는 이 브라우저(로컬 스토리지)에만 보관됩니다. 키는 자동 구조화 요청 처리용으로만 서버에 전달되고 앱이 저장하지 않습니다.",
+        "Gemini: API 키는 이 브라우저(로컬 스토리지)에만 두고, 자동 구조화 시에만 /api/gemini로 전달되며 앱이 저장하지 않습니다. 신뢰할 수 없다고 판단할 경우, 키 값을 넣지 마세요.",
     geminiApiKey: "Gemini API 키",
-    geminiApiKeyPlaceholder: "Google AI Studio에서 복사한 키를 붙여넣기 (대개 AIza로 시작)",
+    geminiApiKeyPlaceholder: "Google AI Studio에서 복사한 키를 붙여넣기",
     geminiApiKeyHintBefore: "Google AI Studio ",
     geminiApiKeyHintAfter: " 에서 키를 발급받으세요.",
     geminiApiKeyShow: "API 키 표시",
     geminiApiKeyHide: "API 키 숨기기",
+    llmProvider: "자동 구조화 백엔드",
+    llmProviderGemini: "Google Gemini",
+    llmProviderCursorAgent: "Cursor Agent (로컬 CLI)",
+    cursorAgentHint:
+        "해당 PC에 Cursor CLI를 설치한 뒤 `cursor-agent login`을 하고 `npm run dev`로 앱을 띄우세요.",
     language: "언어",
     cancel: "취소",
     saveChanges: "저장",
@@ -351,10 +391,10 @@ const ko: Translation = {
             label: "초안",
             description: "자연어로 작성한 원본 프롬프트",
             placeholder:
-                "지금 머릿속에 있는 요청을 그대로 적어보세요. 문장이 어수선해도 괜찮습니다.\n\n- 무엇을 바꾸거나 만들고 싶은지\n- 왜 필요한지(배경·동기)\n- 이미 시도한 것, 막힌 지점, 성공/실패 신호\n- 독자(모델)가 알아야 할 사람·역할·제품 맥락\n\n여기서는 정리보다 ‘전부 말하기’가 목표입니다.",
+                "지금 머릿속에 있는 요청을 그대로 적어보세요. 문장이 어수선해도 괜찮습니다.\n\n- 무엇을 바꾸거나 만들고 싶은지\n- 왜 필요한지(배경·동기)\n- 이미 시도한 것, 막힌 지점, 성공/실패 신호\n- 독자(모델)가 알아야 할 사람·역할·제품 맥락\n\n여기서는 정리보다 ‘전부 말하기'가 목표입니다.",
             tips: [
                 "독자를 한 명 정해보세요(예: 시니어 백엔드 동료). 그 사람에게 말하듯 배경→목표→우선순위 순으로 씁니다.",
-                "‘끝났다’고 판단할 신호를 적어두세요(예: 테스트 통과, 스크린샷 기준, 특정 URL 동작). 다음 단계에서 그대로 옮기기 좋습니다.",
+                "‘끝났다'고 판단할 신호를 적어두세요(예: 테스트 통과, 스크린샷 기준, 특정 URL 동작). 다음 단계에서 그대로 옮기기 좋습니다.",
                 "이미 알고 있는 제약·금지·마감·리스크를 메모하세요. 지금은 다듬지 않아도 됩니다.",
             ],
         },
@@ -362,24 +402,24 @@ const ko: Translation = {
             label: "완료 기준",
             description: "끝났는지 어떻게 알지",
             placeholder:
-                "검증 가능한 ‘완료 신호’만 적으세요. 목표 문장이 아니라, 통과/실패를 판별할 수 있는 줄들입니다.\n\n- 한 줄에 관찰 가능한 결과 하나(동작·데이터·화면 신호)\n- ‘만들어줘’보다 ‘이렇게 되면 된다’\n- 우선순위가 있으면 (1)(2)처럼 표시\n\n여기엔 레포 사실·금지 규칙·답장 형식을 넣지 마세요. 다른 단계입니다.",
+                "검증 가능한 ‘완료 신호'만 적으세요. 목표 문장이 아니라, 통과/실패를 판별할 수 있는 줄들입니다.\n\n- 한 줄에 관찰 가능한 결과 하나(동작·데이터·화면 신호)\n- ‘만들어줘'보다 ‘이렇게 되면 된다'\n- 우선순위가 있으면 (1)(2)처럼 표시\n\n여기엔 레포 사실·금지 규칙·구현 계약(실행 순서)을 넣지 마세요. 다른 단계입니다.",
             bad: "로그인 시스템 만들어줘.",
             good: "- 이메일/비밀번호 인증 흐름 구현.\n- 로그인 성공 시 JWT 발급, httpOnly 쿠키에 저장.\n- 세션 스토리지 사용 금지.\n- 로그인 후 /dashboard로 리다이렉트.",
             tips: [
-                "‘지금 이미 있다/없다’ 같은 사실은 바탕 사실 단계로 옮기세요.",
-                "‘절대 하면 안 되는 것’은 필수·금지 단계로 옮기세요.",
-                "‘이 전달에서 다루지 않는 것’은 전달 범위로 옮기세요.",
+                "‘지금 이미 있다/없다' 같은 사실은 바탕 사실 단계로 옮기세요.",
+                "‘절대 하면 안 되는 것'은 필수·금지 단계로 옮기세요.",
+                "‘이 전달에서 다루지 않는 것'은 전달 범위로 옮기세요.",
             ],
         },
         realityAnchor: {
             label: "바탕 사실",
             description: "지금 전제로 두는 것만",
             placeholder:
-                "오늘 기준으로 사실인 것만 적습니다. 원하거나 금지하는 것은 다른 칸입니다.\n\n- 프레임워크·런타임·버전, 경로, 브랜치\n- 이미 있는 것 / 없는 것 / 깨진 것\n- 로컬 재현 명령\n\n‘이렇게 되면 좋겠다’는 완료 기준으로, ‘이렇게 답해줘’는 답장 형식으로 보내세요.",
+                "오늘 기준으로 사실인 것만 적습니다. 원하거나 금지하는 것은 다른 칸입니다.\n\n- 프레임워크·런타임·버전, 경로, 브랜치\n- 이미 있는 것 / 없는 것 / 깨진 것\n- 로컬 재현 명령\n\n‘이렇게 되면 좋겠다'는 완료 기준으로, 경로·API·빌드 순서 블루프린트는 자동 구조화 결과(SPEC)와 구현 계약으로 보내세요.",
             bad: "내 프로젝트에 로그인 추가해줘.",
             good: "- Next.js 14 App Router (src/app 디렉토리).\n- @supabase/ssr로 Supabase 연결됨.\n- 기존 인증 시스템 없음.\n- User 테이블: id, email, created_at.\n- env: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_ANON_KEY.",
             tips: [
-                "감사관에게 말하듯: ~이다 / ~였다 / ~가 있다. ‘해야 한다’는 이 칸이 아닙니다.",
+                "감사관에게 말하듯: ~이다 / ~였다 / ~가 있다. ‘해야 한다'는 이 칸이 아닙니다.",
                 "버전·경로를 숫자와 실제 문자열로 고정하세요.",
                 "진입점 파일 하나(README, 핵심 라우트)를 찍으면 탐색이 줄어듭니다.",
             ],
@@ -388,12 +428,12 @@ const ko: Translation = {
             label: "필수·금지",
             description: "작업 자체의 강제 규칙",
             placeholder:
-                "구현·아키텍처·보안 등 일을 하는 방식의 협상 불가 조건만.\n\n- MUST / MUST NOT / NEVER / ONLY\n- 의존성, 스택, 보안, 호환성\n\n답장을 짧게 쓰라는 규칙은 답장 형식에 두세요.",
+                "구현·아키텍처·보안 등 일을 하는 방식의 협상 불가 조건만.\n\n- MUST / MUST NOT / NEVER / ONLY\n- 의존성, 스택, 보안, 호환성\n\n파일/API 단계별 실행 계획은 자동 구조화의 implementation blueprint와 구현 계약 필드에 적습니다.",
             bad: "코드를 깔끔하고 빠르게 만들어줘.\n어떤 라이브러리든 알아서 써.",
             good: "- 반드시 Next.js App Router만 사용. Pages Router 금지.\n- 새 npm 패키지 설치 절대 금지.\n- Tailwind CSS만 사용. 커스텀 CSS 파일 금지.\n- /prisma/schema.prisma 절대 수정 금지.\n- 클래스 컴포넌트 사용 금지.",
             tips: [
                 "진짜 금지는 NEVER·MUST NOT로 씁니다.",
-                "‘답변에 서론 넣지 마’ 같은 말은 산출물 규칙이므로 답장 형식으로 옮기세요.",
+                "‘답변에 서론 넣지 마' 같은 말은 채팅 꾸밈 규칙이므로 구현 계약이 아니라 별도 작업 지침에 두세요.",
                 "스타일 제약과 아키텍처 제약을 섞지 말고 나눠 적습니다.",
             ],
         },
@@ -401,26 +441,26 @@ const ko: Translation = {
             label: "전달 범위",
             description: "이 전달문이 맡는 경계",
             placeholder:
-                "‘사용자가 채팅을 여러 번 나눈다’는 뜻이 아닙니다. 이 구조화된 프롬프트 한 덩어리가 책임지는 범위를 정합니다.\n\n- 포함: 이번 전달이 다루는 영역·산출물\n- 제외·연기: 명시적으로 빼는 것(하네스·다른 모델이 내부에서 쪼개 계획)\n- 선택: 마지막에 범위 고정 문구(예: 이 범위 밖은 하지 않는다)\n\n필요한 핑퐁은 도구·에이전트가 하고, 사람에게 같은 질문을 되풀이하지 않게 경계를 밝힙니다.",
+                "‘사용자가 채팅을 여러 번 나눈다'는 뜻이 아닙니다. 이 구조화된 프롬프트 한 덩어리가 책임지는 범위를 정합니다.\n\n- 포함: 이번 전달이 다루는 영역·산출물\n- 제외·연기: 명시적으로 빼는 것(하네스·다른 모델이 내부에서 쪼개 계획)\n- 선택: 마지막에 범위 고정 문구(예: 이 범위 밖은 하지 않는다)\n\n필요한 핑퐁은 도구·에이전트가 하고, 사람에게 같은 질문을 되풀이하지 않게 경계를 밝힙니다.",
             bad: "전체 인증 시스템을 구현해줘.",
             good: "이번 전달 범위:\n- LoginForm UI (src/components/LoginForm.tsx, 필드+제출만)\n- 백엔드 계약이 머지되면 기존 API에 연결\n\n범위 밖(하네스·후속 전달):\n- 이메일 템플릿, 비밀번호 재설정, OAuth\n\n이 범위 밖 작업은 하지 않는다.",
             tips: [
-                "‘무엇이 완료면 통과인가’는 완료 기준, ‘이 문서가 어디까지 소유하는가’가 전달 범위입니다.",
+                "‘무엇이 완료면 통과인가'는 완료 기준, ‘이 문서가 어디까지 소유하는가'가 전달 범위입니다.",
                 "미루는 일을 이름 붙이면, 모델이 사용자에게 되묻는 횟수가 줄어듭니다.",
                 "범위 고정 한 줄은 확장 방지에 효과적입니다.",
             ],
         },
         responseContract: {
-            label: "답장 형식",
-            description: "말하는 모양만",
+            label: "구현 계약",
+            description: "실행 순서 체크리스트(답장 꾸밈이 아님)",
             placeholder:
-                "답장이 어떤 모습일지만 적습니다. 제품 규칙·완료 정의와 겹치지 않게.\n\n- 섹션 순서, 코드 펜스, 표/산문\n- 길이, 언어\n- 금지: 서론, 사과, 확인 질문 등\n\n필수·금지에 이미 쓴 내용을 여기서 반복하지 않아도 됩니다.",
-            bad: "그냥 코드만 줘.",
-            good: "- 단일 unified diff (git diff 형식)로 출력.\n- 변경된 파일만 포함.\n- diff 앞뒤로 설명 없음.\n- 정규식 패턴에 인라인 주석 추가.\n- 변경 없는 파일은 완전히 생략.",
+                "레포를 모르는 사람이 이 전달물만 보고 구현·검증할 수 있게, 순서와 경로·API를 적습니다.\n\n- 번호 단계 + SPEC의 implementation blueprint와 대응\n- 검증 명령 또는 수동 확인\n\n금지: 'JSON으로 답해', LLM 답변용 마크다운 템플릿, 글자 수 제한, '너의 답은 다음을 포함해야…' 같은 메타 지시.",
+            bad: "요약·기술스택·API예시·다음단계 키를 가진 JSON으로 답해.",
+            good: "1) SPEC의 데이터 모델대로 Prisma 스키마+migrate.\n2) POST /api/event/spin — 행 락·당첨 쿼터 반영.\n3) src/app/event/page.tsx에서 API 호출 및 당첨/실패 문구 표시.\n4) pnpm test && pnpm lint 후 SPEC의 curl 검증 수행.",
             tips: [
-                "순서를 고정하면 복붙·검토가 쉬워집니다.",
-                "서론·대안 나열 금지를 구체적으로 씁니다.",
-                "마지막 체크리스트 요청은 ‘형식’으로 짧게만.",
+                "자동 구조화로 블루프린트가 채워졌다면 그 순서를 명령형으로 다시 적어 실행 동기를 맞춥니다.",
+                "각 단계는 완료 여부를 판정할 수 있어야 합니다.",
+                "채팅 꾸밈 규칙은 여기 넣지 않습니다.",
             ],
         },
     },
@@ -429,16 +469,25 @@ const ko: Translation = {
         realityAnchor: "바탕 사실",
         constraintCage: "필수·금지",
         actionSlice: "전달 범위",
-        responseContract: "답장 형식",
+        responseContract: "구현 계약",
     },
     exportTitle: "에이전트 전달",
+    exportGroupFiles: "파일로 저장",
+    exportGroupChat: "채팅에 붙여넣기",
     downloadZip: "ZIP 묶음",
     downloadSpec: "SPEC.md",
     downloadTaskJson: "preprompt.task.json",
-    copyCursorRules: ".cursor 규칙 복사",
-    copyAgents: "AGENTS.md 복사",
+    downloadCursorRules: "Cursor 규칙 (.mdc)",
+    downloadAgentsMd: "AGENTS.md",
     copyOneLiner: "채팅 한 줄 복사",
     copiedOneLiner: "한 줄 복사됨",
+    exportPathGuide: "옮길 위치 안내",
+    exportPathGuideTitle: "폴더 구조 (경로 고정)",
+    exportPathGuideIntro: "작업할 프로젝트 폴더를 맨 위(루트)로 두고, 아래와 똑같이만 맞추면 됩니다.",
+    exportPathGuideKeepNames: "파일 이름은 절대 바꾸지 말고, 폴더만 만들어서 그대로 넣으세요.",
+    exportPathGuideZipTitle: "ZIP 묶음",
+    exportPathGuideZipBody:
+        "ZIP 안에는 이름이 같은 파일 묶음이 이미 들어 있습니다. 한 번 풀고 위 트리대로 프로젝트에 옮기면 끝이며, ZIP과 개별 파일을 둘 다 받을 필요는 없습니다. CHAT_MESSAGE.txt는 채팅 한 줄과 같은 문구를 디스크에 둔 참고용이고, 실제로는 채팅 한 줄 붙여넣기로 시작하면 됩니다.",
     intentLabel: "의도",
     tokenScenarioTitle: "토큰을 아끼는 원리",
     tokenRounds: "가정하는 핑퐁 횟수",
@@ -451,11 +500,11 @@ const ko: Translation = {
     tokenIllustrativeLabel: "참고 · 줄어든 입력 토큰(대략)",
     tokenPocDisclaimer: "슬라이더는 핑퐁 횟수만 바꿀 수 있고, 나머지 값은 PoC용으로 고정되어 있습니다.",
     compactPlanning: "딥플랜 최소화 (불릿 축소)",
-    compactPlanningHint: "Pass A 출력을 짧게; 체크리스트 세부도 줄어듭니다.",
+    compactPlanningHint: "딥플랜 단계 출력을 짧게; 체크리스트 세부도 줄어듭니다.",
     about: {
         title: "PrePrompt 소개",
         description:
-            "PrePrompt는 작업을 AI에 넘기기 전에 한 번 거치는 Pre-AI Cognitive Layer입니다. 다섯 칸은 서로 겹치지 않게 역할이 나뉩니다. 완료를 어떻게 확인할지, 지금 전제로 두는 사실, 일에 대한 필수·금지, 이 전달문 한 벌이 맡는 범위(하네스나 모델이 내부에서 쪼개 계획하게 하려는 경계), 답장 형식입니다.\n같은 확인을 되풀이하는 채팅과 범위가 밀려 나가는 현상을 줄이고, 무엇을 요청했는지 더 선명하게 남기는 것이 목표입니다.",
+            "PrePrompt는 작업을 AI에 넘기기 전에 한 번 거치는 Pre-AI Cognitive Layer입니다. 다섯 칸은 서로 겹치지 않게 역할이 나뉩니다. 완료를 어떻게 확인할지, 지금 전제로 두는 사실, 일에 대한 필수·금지, 이 전달문 한 벌이 맡는 범위(하네스나 모델이 내부에서 쪼개 계획하게 하려는 경계), 그리고 구현 계약(무엇을 어떤 순서로 만들고 어떻게 검증할지 — '답장을 어떻게 쓸지'가 아닙니다)입니다.\n자동 구조화는 SPEC·task JSON에 기술 스택과 implementation blueprint(경로·데이터 모델·API·검증)를 채워, 처음 보는 사람도 추측 없이 진행할 수 있게 합니다.\n같은 확인을 되풀이하는 채팅과 범위가 밀려 나가는 현상을 줄이고, 무엇을 요청했는지 더 선명하게 남기는 것이 목표입니다.",
         howToUseTitle: "PrePrompt 사용 방법",
         backToHome: "홈으로 돌아가기",
         link: "소개 / 가이드",

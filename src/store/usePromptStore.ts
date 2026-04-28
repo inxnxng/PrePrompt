@@ -1,7 +1,9 @@
-import type { DeepPlan } from "@/lib/deepPlan";
+import { normalizeDeepPlan, type DeepPlan } from "@/lib/deepPlan";
 import { Language } from "@/lib/i18n";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
+export type LlmProvider = "gemini" | "cursorAgent";
 
 export type CognitiveModel = {
     naturalPrompt: string; // Step 0: Initial draft/raw thought
@@ -11,14 +13,16 @@ export type CognitiveModel = {
     actionSlice: string;
     responseContract: string;
     apiKey: string;
+    /** Auto-Structure backend: Google Gemini (cloud, API key) or local cursor-agent CLI via /api/cursor-agent. */
+    llmProvider: LlmProvider;
     language: Language;
     isGenerating?: boolean; // Ephemeral state
     baselineTokens: number | null;
-    /** Pass A deep plan (null until Auto-Structure runs with two-pass). */
+    /** Deep-plan JSON from Auto-Structure (null until orchestration runs). */
     deepPlan: DeepPlan | null;
-    /** Reported total tokens (Pass A + Pass B) from Gemini usageMetadata when available. */
+    /** Deep-plan + five-field steps: Gemini usageMetadata; for cursor-agent, estimated by char heuristic. */
     orchestrationTokenTotal: number | null;
-    /** Shorter Pass A/B when true (fewer checklist bullets). */
+    /** Shorter deep-plan / five-field prompts when true (fewer checklist bullets). */
     compactPlanning: boolean;
 };
 
@@ -35,6 +39,7 @@ const initialState: CognitiveModel = {
     actionSlice: "",
     responseContract: "",
     apiKey: "",
+    llmProvider: "gemini",
     language: "ko",
     isGenerating: false,
     baselineTokens: null,
@@ -54,13 +59,21 @@ export const usePromptStore = create<PromptStore>()(
         {
             name: "preprompt-storage", // Key in localStorage
             merge: (persisted, current) => {
-                const p = (persisted ?? {}) as Partial<CognitiveModel>;
+                const p = (persisted ?? {}) as Partial<CognitiveModel> & {
+                    /** Legacy persisted values include "ollama" (removed); coerce to cursorAgent. */
+                    llmProvider?: unknown;
+                };
+                const mergedDeep = p.deepPlan != null ? normalizeDeepPlan(p.deepPlan as object) : null;
+                const rawProvider = String((p as { llmProvider?: unknown }).llmProvider ?? "");
+                const provider: LlmProvider =
+                    rawProvider === "cursorAgent" || rawProvider === "ollama" ? "cursorAgent" : "gemini";
                 return {
                     ...current,
                     ...p,
-                    deepPlan: p.deepPlan ?? null,
+                    deepPlan: mergedDeep,
                     orchestrationTokenTotal: p.orchestrationTokenTotal ?? null,
                     compactPlanning: p.compactPlanning ?? false,
+                    llmProvider: provider,
                 };
             },
         }
@@ -75,7 +88,14 @@ export function estimateTokens(text: string): number {
 export function compileToPrompt(
     model: Omit<
         CognitiveModel,
-        "naturalPrompt" | "apiKey" | "language" | "isGenerating" | "deepPlan" | "orchestrationTokenTotal" | "compactPlanning"
+        | "naturalPrompt"
+        | "apiKey"
+        | "language"
+        | "isGenerating"
+        | "deepPlan"
+        | "orchestrationTokenTotal"
+        | "compactPlanning"
+        | "llmProvider"
     >
 ): string {
     return [
@@ -83,7 +103,7 @@ export function compileToPrompt(
         `Ground (facts):\n${model.realityAnchor}`,
         `Hard rules:\n${model.constraintCage}`,
         `Handoff scope:\n${model.actionSlice}`,
-        `Output format:\n${model.responseContract}`,
+        `Implementation contract:\n${model.responseContract}`,
     ]
         .filter((section) => section.split("\n")[1].trim() !== "")
         .join("\n\n");
