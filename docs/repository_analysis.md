@@ -15,6 +15,22 @@
   - **5단계 인지 슬롯**(성공 기준·사실/가정·하드 규칙·핸드오프 범위·출력 형식)으로 질문을 구조화한 뒤, **딥 플랜(JSON)**과 **컴파일된 프롬프트**를 만드는 것입니다.
 - 코드상 필드명은 README대로 `intentLock`, `realityAnchor`, `constraintCage`, `actionSlice`, `responseContract`이며 `src/store/usePromptStore.ts`의 `CognitiveModel`에 정의되어 있습니다.
 
+### 핵심 로직: 5단계 인지 슬롯(＋0단계 초안)
+
+UI 내비게이션(`src/components/StageNav.tsx`의 `STAGES`)은 **0단계 초안**과 **구조화된 5슬롯**을 합쳐 총 6스텝으로 보이지만, 제품이 말하는 **「5단계」**는 초안을 제외한 아래 다섯 필드입니다. 사용자는 각 슬롯에 직접 입력하거나, **Auto-Structure**로 LLM이 한 번에 채우게 할 수 있습니다(`src/lib/agent/generateStructuredPrompt.ts`의 `generateStructuredPrompt`: Gemini는 `geminiOrchestration.ts`에서 먼저 **딥 플랜 JSON**, 이어서 동일 초안·딥 플랜을 넣어 **5필드 JSON**을 생성. Cursor Agent 경로는 `cursorAgentOrchestration.ts`에서 필드별 순차 호출).
+
+| 단계(슬롯) | 저장소 필드 | 역할(오케스트레이션·UI와의 대응) |
+|------------|-------------|----------------------------------|
+| 1 | `intentLock` | **성공 기준**: 관측 가능한 완료·합격 조건만. 저장소 경로·버전 나열은 플랜 단계가 아니라 “합격/불합격에 직접 쓰일 때”에 한함(`orchestration.en.json`의 `fieldMeaningsBullets` / `agent.fieldSpec`). |
+| 2 | `realityAnchor` | **사실·가정(그라운드)**: 현재 스택, 경로, 이미 있는 것 등 사실과 가정. 딥 플랜의 `technicalApproach` 등을 녹여도 되며, 권고형 “해야 한다” 서술은 피함. |
+| 3 | `constraintCage` | **하드 규칙**: 아키텍처·의존성·보안·라이선스 등 **MUST / MUST NOT**. 채팅 답변 형식 지시는 여기에 두지 않음. |
+| 4 | `actionSlice` | **이번 핸드오프 범위**: 이번 전달에서 **in scope**와 **명시적으로 미룬(out of deferred)** 것. 필요 시 한 줄 **스코프 고정(scope-freeze)** 으로 마무리. |
+| 5 | `responseContract` | **구현 계약(코드상 필드명은 레거시와 동일)**: 실제 작업 수행자(사람·에이전트)를 위한 **번호 매긴 실행 체크리스트**, 파일·API 지시, 검증 방법. 채팅 응답 형태·JSON 답변 형·글자 수 제한 등 **대화 출력 규약**은 금지(`fiveFields` / `agent.fieldSpec`의 `responseContract` 설명과 동일 취지). |
+
+**컴파일된 한 덩어 프롬프트**는 `usePromptStore.ts`의 `compileToPrompt`가 위 다섯 줄을 다음 헤더로 이어 붙입니다: `Success criteria`, `Ground (facts)`, `Hard rules`, `Handoff scope`, `Implementation contract`. 비어 있는 슬롯은 해당 섹션이 필터링되어 최종 문자열에서 빠질 수 있습니다.
+
+정리하면, **0단계 `naturalPrompt`**가 원시 의도이고, **1~5단계**가 그것을 **판정 기준·전제·제약·범위·실행 계약**으로 쪼개 AI(또는 구현자)에게 넘기는 **인지 프로토콜**입니다. 딥 플랜은 그 사이에서 구현 청사진·DoD·보안 등을 JSON 스키마로 고정하는 중간 산출물입니다.
+
 ### 페인 포인트와의 대응 (코드·문서에 실제로 있는 내용만)
 
 | 질문에서 가정한 페인 | 이 레포에서의 대응 |
@@ -40,15 +56,15 @@
    - **`src/app/api/cursor-agent/route.ts`**: 로컬 **`cursor-agent` 바이너리**를 `spawn`으로 실행하는 **CLI 프록시**입니다. 타임아웃(180s), stdout/stderr 상한, 본문 크기 제한, IP 레이트 리밋이 있습니다. 주석에 “typically local dev” 환경을 전제로 합니다.
 
 3. **상호작용**  
-   - `src/lib/gemini.ts`의 `generateStructuredPrompt`:  
-     - `provider === "cursorAgent"`이면 브라우저 → **`/api/cursor-agent`** → 서버에서 `cursor-agent` 실행 → stdout에서 JSON 추출(`extractJsonFromAgentOutput`).  
-     - 기본은 **`/api/gemini`**로 Gemini 두 번 호출(딥 플랜 JSON → 5필드 JSON).  
+   - `src/lib/agent/generateStructuredPrompt.ts`의 `generateStructuredPrompt`:  
+     - `provider === "cursorAgent"`이면 브라우저 → **`/api/cursor-agent`** → 서버에서 `cursor-agent` 실행 → stdout에서 JSON 추출(`cursorAgentOrchestration.ts`의 `extractJsonFromAgentOutput`).  
+     - 기본은 **`/api/gemini`**로 Gemini 두 번 호출(딥 플랜 JSON → 5필드 JSON, `geminiOrchestration.ts`).  
    - 즉 “확장 프로그램”이 아니라 **웹앱 + (선택) 로컬 Cursor Agent CLI + (선택) Gemini 프록시** 구조입니다.
 
 ### “소스 전체 없이 메타데이터만” 수집?
 
 이 레포에는 **Git/파일 트리를 읽어 메타데이터만 업로드하는 모듈이 없습니다**.  
-자동 구조화에 들어가는 것은 사용자가 입력한 **`naturalPrompt` 문자열**(및 오케스트레이션용 시스템 지시·스키마 텍스트)입니다(`generateStructuredPrompt` in `gemini.ts`).  
+자동 구조화에 들어가는 것은 사용자가 입력한 **`naturalPrompt` 문자열**(및 오케스트레이션용 시스템 지시·스키마 텍스트)입니다(`generateStructuredPrompt` in `src/lib/agent/generateStructuredPrompt.ts`).  
 따라서 질문에 적힌 **“메타데이터만 모아 진행 상황 파악” 방식과 그 보안 이점**은 **이 코드베이스의 구현 설명으로는 맞지 않습니다**.  
 보안 이점으로 README에 가깝게 말할 수 있는 것은: **초안·구조 필드·딥 플랜은 브라우저 localStorage**, 서버가 이를 영구 저장하지 않는다는 점(다만 Gemini/호스팅 사용 시 중계·키 통과는 README 경고대로입니다).
 
@@ -67,9 +83,9 @@
 
 ### 로컬 LLM(Ollama) / Gemini 요약 시 프롬프트에 쓰는 데이터
 
-- **Gemini** (`src/lib/gemini.ts`):  
+- **Gemini** (`src/lib/agent/geminiOrchestration.ts`):  
   - 1차: `buildDeepPlanSystemInstruction` + 사용자 메시지 `User draft:\n${JSON.stringify(naturalPrompt)}`.  
-  - 2차: `buildFiveFieldsSystemInstruction` + `Deep plan JSON` + `Original draft` (같은 파일 내 `fiveFieldsUser`).  
+  - 2차: `buildFiveFieldsSystemInstruction` + `Deep plan JSON` + `Original draft` (같은 모듈 내 `fiveFieldsUser`).  
   - 모델은 코드상 `gemini-2.5-flash` 상수.  
 - **Cursor Agent** 경로: 딥 플랜용 `combinedAgentPrompt`, 이후 필드별 `buildAgentStageUserContent`(초안, 딥 플랜 JSON, 이미 채운 이전 슬롯) + `buildAgentSingleFieldSystem`.  
 - **Ollama**: `src/store/usePromptStore.ts` persist `merge`에 “Legacy persisted values include `"ollama"` (removed); coerce to `cursorAgent`”라고 되어 있어, 과거에 UI에 있었을 수 있으나 **현재 타입은 `gemini` \| `cursorAgent`만**이고 Ollama 전용 호출 경로는 없습니다.
@@ -109,7 +125,9 @@
 | `BENCHMARK.md` | 비교 측정 방법론 |
 | `package.json` | 패키지명 `preprompt` |
 | `src/store/usePromptStore.ts` | 상태, `LlmProvider`, localStorage 키 |
-| `src/lib/gemini.ts` | `generateStructuredPrompt`, Gemini/Cursor Agent 오케스트레이션 |
+| `src/lib/agent/generateStructuredPrompt.ts` | Auto-Structure 진입점 `generateStructuredPrompt` |
+| `src/lib/agent/geminiOrchestration.ts` | Gemini 두 단계 호출·병합 |
+| `src/lib/agent/cursorAgentOrchestration.ts` | `/api/cursor-agent` 순차 오케스트레이션 |
 | `src/lib/deepPlan.ts` | `DeepPlan` 타입, SPEC Markdown 생성 |
 | `src/lib/exports.ts` | ZIP 핸드오프, `SPEC.md`, `preprompt.task.json` |
 | `src/lib/llmOrchestrationPrompts.ts` | 시스템 지시 조립 |

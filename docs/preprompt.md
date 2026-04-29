@@ -13,7 +13,7 @@ However, users frequently experience:
 - Repeated refinement cycles
 - Loss of control over output
 
-This project proposes a **Pre-AI Cognitive Layer** — a structured thinking protocol that users must pass through *before* sending a request to an AI system.
+This project proposes a **Pre-AI Cognitive Layer** — a structured thinking protocol that users must pass through _before_ sending a request to an AI system.
 
 ---
 
@@ -58,7 +58,7 @@ Make a login system.
 
 ## 2. Ground truth (field: `realityAnchor`)
 
-**Definition:** Facts and assumptions about the system and environment *today*.
+**Definition:** Facts and assumptions about the system and environment _today_.
 
 **Purpose:** Prevent the model from hallucinating context; keep “is / has / was” separate from goals and rules.
 
@@ -96,7 +96,7 @@ Add login to my project.
 
 ## 4. Handoff scope (field: `actionSlice`)
 
-**Definition:** Boundaries of *this single structured handoff*—in scope vs explicitly deferred or excluded.
+**Definition:** Boundaries of _this single structured handoff_—in scope vs explicitly deferred or excluded.
 
 **Purpose:** One user-facing package of intent; downstream harness or agents may plan subdivisions internally without re-asking the user the same scope questions.
 
@@ -120,7 +120,7 @@ Nothing outside this scope.
 
 ## 5. Output format (field: `responseContract`)
 
-**Definition:** How the target model should shape its *reply* (sections, fences, length, banned fluff).
+**Definition:** How the target model should shape its _reply_ (sections, fences, length, banned fluff).
 
 **Purpose:** Predictable, copy-friendly answers; separate from product rules in Hard rules.
 

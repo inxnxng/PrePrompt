@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 프롬프트 사전 설계 시스템 - PrePrompt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700&display=swap");
+
+      /* ISO 216 A4 가로: 297mm × 210mm (인쇄·화면 동일 기준) */
+      @page {
+        size: 297mm 210mm;
+        margin: 0;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body {
+        min-height: 100%;
+        font-family:
+          "Pretendard",
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        background: linear-gradient(165deg, #eef2f7 0%, #f1f5f9 42%, #f8fafc 100%);
+      }
+
+      .page {
+        width: 297mm;
+        max-width: 100%;
+        height: 210mm;
+        max-height: 210mm;
+        padding: 3.5mm 4.5mm;
+        margin: 0 auto;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        border-radius: 2px;
+        border: 1px solid rgb(226 232 240 / 0.7);
+        font-size: 14.25px;
+        line-height: 1.45;
+        overflow: hidden;
+      }
+
+      /* 한 장 안: 헤더 아래 높이를 상·중·하가 나눠 쓴다 (가로형: 상단 5단계 비중, 그래프 확대) */
+      .page-main {
+        flex: 1 1 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        overflow: hidden;
+      }
+
+      /* 비율: 상단(5단계) : 실험·그래프 : 진행표 ≈ 50 : 34 : 16 */
+      .page-main > .sheet-top {
+        flex: 50 1 0;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .page-main > .sheet-mid {
+        flex: 34 1 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .page-main > .sheet-bottom {
+        flex: 16 1 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      @media print {
+        html,
+        body {
+          height: auto;
+          background: #fff;
+        }
+        body {
+          padding: 0 !important;
+        }
+        .page {
+          width: 297mm;
+          height: 210mm;
+          max-height: 210mm;
+          margin: 0;
+          padding: 3.5mm 4.5mm;
+          border: none;
+          border-radius: 0;
+          box-shadow: none;
+          overflow: hidden;
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+      }
+
+      /* 5슬롯: 상단 설명 블록 최소 높이(남는 높이는 카드 본문이 흡수) */
+      .step-card-top {
+        min-height: 3rem;
+      }
+
+      .step-card {
+        min-height: 0;
+      }
+
+      .step-card-body {
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+    </style>
+  </head>
+
+  <body
+    class="p-0 py-3 px-2 flex flex-col items-center justify-center min-h-screen print:min-h-0 print:justify-start print:py-0 print:px-0"
+  >
+    <div
+      class="page shrink-0 shadow-none md:shadow-[0_22px_48px_-14px_rgba(15,23,42,0.11)]"
+    >
+      <!-- 헤더: one_page_description 과 동일 톤(축소 비율만 조정) -->
+      <header
+        class="border-b border-slate-200/90 pb-1 mb-0.5 flex flex-wrap items-end justify-between gap-2 shrink-0"
+      >
+        <div class="min-w-0 flex flex-wrap items-end gap-x-3 gap-y-1">
+          <h1
+            class="text-[1.55rem] font-bold text-slate-900 tracking-[-0.02em] leading-tight shrink-0"
+          >
+            AI 프롬프트 사전 설계 시스템
+          </h1>
+          <p class="text-[1.02rem] text-slate-500 font-normal leading-snug min-w-0 max-w-2xl">
+            안전한 AI 협업을 위한 PrePrompt 5단계 하네스
+          </p>
+        </div>
+        <a
+          href="https://pre-prompt.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="shrink-0 text-[0.98rem] font-normal text-sky-700 bg-sky-50 px-2.5 py-1.5 rounded-md border border-sky-100 hover:bg-sky-100/80 transition-colors"
+          >라이브 데모 →</a
+        >
+      </header>
+
+      <main class="page-main">
+      <!-- 과제 기능 + PrePrompt ZIP 산출물: 같은 톤 배경 -->
+      <section
+        class="sheet-top rounded-xl bg-slate-50/90 border border-slate-200/90 p-1.5 min-h-0 flex flex-col"
+      >
+        <div
+          class="grid grid-cols-12 gap-1.5 min-h-0 flex-1 items-stretch"
+          style="grid-template-rows: 1fr"
+        >
+          <div class="col-span-3 flex flex-col gap-1.5 min-w-0 min-h-0 overflow-hidden justify-between">
+            <div class="rounded-lg border border-slate-200/90 bg-white p-1 flex flex-col min-h-0 shrink min-w-0">
+              <h2 class="text-[1.08rem] font-bold text-slate-900 mb-1 border-b border-slate-200 pb-1 leading-tight">
+                프로젝트 설명
+              </h2>
+              <p class="text-[0.92rem] text-slate-600 leading-snug m-0 mb-1">
+                프로젝트 — 초안을 5필드로 정리하고
+                ZIP까지 만드는 웹 기반 서비스.
+              </p>
+              <p class="text-[0.92rem] text-slate-500 leading-snug m-0">
+                대상 — Cursor, LLM으로 구현을 맡기는
+                개발, 기획, 보안/거버넌스, 재작업, 스코프 이탈을 줄이려는 팀.
+              </p>
+            </div>
+            <div
+              class="rounded-lg border border-slate-200/90 bg-white p-1 flex flex-col min-w-0 min-h-0 shrink overflow-hidden"
+            >
+              <h2 class="text-[1.08rem] font-bold text-slate-900 mb-1 border-b border-slate-200 pb-1 leading-tight">
+                PrePrompt ZIP 산출물
+              </h2>
+              <p class="text-[0.92rem] text-slate-600 leading-snug mb-1 m-0">
+                <span class="font-mono text-[0.82rem] text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/80"
+                  >preprompt-handoff.zip</span
+                >
+                <br />
+                — 명세, 작업 JSON, Cursor 규칙, 요약.
+              </p>
+              <ul
+                class="text-[0.9rem] text-slate-700 space-y-0.5 leading-snug list-none m-0 p-0 rounded-lg border border-slate-100 bg-slate-50/80 px-1.5 py-1"
+              >
+                <li class="flex gap-1 min-w-0" title="SPEC.md">
+                  <span class="text-slate-400 shrink-0">•</span>
+                  <span class="min-w-0 truncate">SPEC.md</span>
+                </li>
+                <li class="flex gap-1 min-w-0" title="preprompt.task.json">
+                  <span class="text-slate-400 shrink-0">•</span>
+                  <span class="min-w-0 truncate">preprompt.task.json</span>
+                </li>
+                <li class="flex gap-1 min-w-0" title=".cursor/rules">
+                  <span class="text-slate-400 shrink-0">•</span>
+                  <span class="min-w-0 truncate">.cursor/rules/*.mdc</span>
+                </li>
+                <li class="flex gap-1 min-w-0" title="AGENTS.md">
+                  <span class="text-slate-400 shrink-0">•</span>
+                  <span class="min-w-0 truncate">AGENTS.md</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="col-span-9 rounded-xl border border-slate-200/90 bg-white p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+          >
+            <div class="border-b border-slate-100 pb-1.5 mb-1.5 min-w-0 flex flex-col gap-1 shrink-0">
+              <h2 class="text-[1.08rem] font-bold text-slate-900 leading-tight m-0 min-w-0">
+                과제 기능 — 핵심 로직: 5단계 인지 프로토콜
+              </h2>
+              <div class="flex justify-start w-full min-w-0">
+                <div
+                  class="inline-flex flex-wrap items-center justify-center gap-1.5 max-w-full rounded-lg border border-sky-200 bg-sky-50 px-2 py-1"
+                >
+                  <span class="text-[1rem] leading-none shrink-0" aria-hidden="true">💬</span>
+                  <span class="text-[0.88rem] font-normal text-sky-800 shrink-0">가정</span>
+                  <span class="text-[0.88rem] font-normal text-slate-800 text-center break-words min-w-0"
+                    >“룰렛 페이지를 만들어줘”</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div
+              class="grid grid-cols-5 gap-1.5 items-stretch min-h-0 flex-1 overflow-hidden basis-0"
+              style="grid-template-rows: minmax(0, 1fr)"
+            >
+              <div
+                class="step-card bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+              >
+                <div class="step-card-top shrink-0">
+                  <div class="text-[0.88rem] font-bold text-blue-500 mb-0.5">Step 1</div>
+                  <div class="text-[1.02rem] font-bold text-slate-900 mb-0.5">성공 기준</div>
+                  <div class="text-[0.86rem] text-slate-500 leading-snug">
+                    완료 판정을 위한 관측 가능한 합격 조건 정의
+                  </div>
+                </div>
+                <div
+                  class="step-card-body pt-1.5 border-t border-slate-200/90 min-w-0 min-h-0 overflow-hidden flex flex-col justify-start"
+                >
+                  <p class="text-[0.82rem] font-normal text-sky-800 mb-0.5">예시</p>
+                  <ul
+                    class="text-[0.84rem] text-slate-600 leading-snug m-0 pl-3 list-disc space-y-0.5 marker:text-slate-400"
+                  >
+                    <li>랜덤: getRandomValues만</li>
+                    <li>스핀→표시, 네트 없이 동일 탭 재현</li>
+                  </ul>
+                </div>
+              </div>
+              <div
+                class="step-card bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+              >
+                <div class="step-card-top shrink-0">
+                  <div class="text-[0.88rem] font-bold text-blue-500 mb-0.5">Step 2</div>
+                  <div class="text-[1.02rem] font-bold text-slate-900 mb-0.5">사실 / 가정</div>
+                  <div class="text-[0.86rem] text-slate-500 leading-snug">
+                    기술 스택, 경로, 데이터 등 사실 기반 그라운딩
+                    </br>
+                  </div>
+                </div>
+                <div
+                  class="step-card-body pt-1.5 border-t border-slate-200/90 min-w-0 min-h-0 overflow-hidden flex flex-col justify-start"
+                >
+                  <p class="text-[0.82rem] font-normal text-sky-800 mb-0.5">예시</p>
+                  <ul
+                    class="text-[0.84rem] text-slate-600 leading-snug m-0 pl-3 list-disc space-y-0.5 marker:text-slate-400"
+                  >
+                    <li>Next 14 App Router, 클라이언트, /roulette</li>
+                    <li>외부 API, DB, 결제 없음</li>
+                    <li>시크릿은 로컬 .env만</li>
+                  </ul>
+                </div>
+              </div>
+              <div
+                class="step-card bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+              >
+                <div class="step-card-top shrink-0">
+                  <div class="text-[0.88rem] font-bold text-blue-500 mb-0.5">Step 3</div>
+                  <div class="text-[1.02rem] font-bold text-slate-900 mb-0.5">하드 규칙</div>
+                  <div class="text-[0.86rem] text-slate-500 leading-snug">
+                    보안, 라이선스 등 타협 불가능한 MUST/MUST NOT
+                  </div>
+                </div>
+                <div
+                  class="step-card-body pt-1.5 border-t border-slate-200/90 min-w-0 min-h-0 overflow-hidden flex flex-col justify-start"
+                >
+                  <p class="text-[0.82rem] font-normal text-sky-800 mb-0.5">예시</p>
+                  <ul
+                    class="text-[0.84rem] text-slate-600 leading-snug m-0 pl-3 list-disc space-y-0.5 marker:text-slate-400"
+                  >
+                    <li>TS strict</li>
+                    <li>eval, dangerouslySetInnerHTML 금지</li>
+                    <li>스핀 버튼 aria-label</li>
+                  </ul>
+                </div>
+              </div>
+              <div
+                class="step-card bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+              >
+                <div class="step-card-top shrink-0">
+                  <div class="text-[0.88rem] font-bold text-blue-500 mb-0.5">Step 4</div>
+                  <div class="text-[1.02rem] font-bold text-slate-900 mb-0.5">작업 범위 (In/Out)</div>
+                  <div class="text-[0.86rem] text-slate-500 leading-snug">
+                    구현에 포함할 일(In)과 제외, 보류(Out)를 필드로 구분
+                  </div>
+                </div>
+                <div
+                  class="step-card-body pt-1.5 border-t border-slate-200/90 min-w-0 min-h-0 overflow-hidden flex flex-col justify-start"
+                >
+                  <p class="text-[0.82rem] font-normal text-sky-800 mb-0.5">예시</p>
+                  <ul
+                    class="text-[0.84rem] text-slate-600 leading-snug m-0 pl-3 list-disc space-y-0.5 marker:text-slate-400"
+                  >
+                    <li>In: roulette 한 페이지, 클라이언트 상태</li>
+                    <li>Out: 결제, 인증, 서버 RNG, 배포, 로그</li>
+                  </ul>
+                </div>
+              </div>
+              <div
+                class="step-card bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+              >
+                <div class="step-card-top shrink-0">
+                  <div class="text-[0.88rem] font-bold text-blue-500 mb-0.5">Step 5</div>
+                  <div class="text-[1.02rem] font-bold text-slate-900 mb-0.5">출력 형식</div>
+                  <div class="text-[0.86rem] text-slate-500 leading-snug">
+                    응답 섹션, 길이, 형식 등 모델 답변 규약(하드 규칙과 분리)
+                  </div>
+                </div>
+                <div
+                  class="step-card-body pt-1.5 border-t border-slate-200/90 min-w-0 min-h-0 overflow-hidden flex flex-col justify-start"
+                >
+                  <p class="text-[0.82rem] font-normal text-sky-800 mb-0.5">예시</p>
+                  <ul
+                    class="text-[0.84rem] text-slate-600 leading-snug m-0 pl-3 list-disc space-y-0.5 marker:text-slate-400"
+                  >
+                    <li>변경분: unified diff만</li>
+                    <li>시크릿, 내부 URL 미기재</li>
+                    <li>환경은 .env.example 플레이스홀더</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 토큰: BENCHMARK_RESULTS 맥락(목적→결과→해석→결론) + 개념 그래프 -->
+      <section
+        class="sheet-mid w-full min-w-0 rounded-xl border border-slate-200/90 bg-slate-50/90 p-1.5 mb-0 grid min-h-0 h-full overflow-hidden grid-cols-1 min-[520px]:grid-cols-[minmax(0,1fr)_max-content] gap-x-2 gap-y-0 items-stretch"
+      >
+        <div
+          class="min-w-0 min-h-0 h-full flex flex-col overflow-hidden text-[0.95rem] text-slate-700 leading-snug justify-between"
+        >
+          <h2
+            class="text-[1.08rem] font-bold text-slate-900 mb-1 border-b border-slate-200 pb-1 leading-tight shrink-0"
+          >
+            적용 실험 결과
+          </h2>
+          <ul
+            class="m-0 pl-3.5 list-disc space-y-2 marker:text-slate-400 text-slate-800 min-h-0 flex-1 overflow-hidden text-[0.96rem]"
+          >
+            <li>
+              목적 — 동일 시드에서 PrePrompt 오케스트(UI, 내부 처리)와 채팅만으로 맞추는 짧은 다턴의 토큰 비용을 숫자로 비교한다.
+            </li>
+            <li>
+              숫자 — PrePrompt ZIP으로 구현에 넘길 첫 입력은 약 2.3k 토큰이면 되고, 같은 맥락을 채팅만으로 맞추려 4턴을 주고받으면 누적 약 6.2k까지 올라갔다(대략 2~3배).
+              <br />
+              그에 비해 PrePrompt 오케스트 6회까지 포함하면 약 13.9k로 4턴보다 크다. 문맥만 5필드로 정리한 단계는 약 1.6k로 가장 가볍다.
+            </li>
+            <li>
+              결과 — 다회 대화 비용이 큰 과제에는 PrePrompt 하네스가 적합하고, 소규모, 즉답형에는 직접 채팅이 나은 편이다.
+            </li>
+          </ul>
+          <p class="m-0 mt-1 text-slate-500 text-[0.82rem] leading-snug shrink-0">
+            * <span class="font-mono text-[0.8rem]">모델 사용 : composer-2-fast</span>
+          </p>
+        </div>
+        <div
+          class="sheet-mid-graph w-[300px] max-w-full min-w-0 h-full min-h-0 shrink-0 flex flex-col items-stretch overflow-hidden rounded-lg border border-slate-200/90 bg-white p-1"
+        >
+          <h2
+            class="text-[0.98rem] font-bold text-slate-900 mb-1 w-full text-center leading-tight border-b border-slate-200 pb-1 shrink-0"
+          >
+            누적 토큰 vs 명확화 턴<br /><span class="font-normal text-slate-600 font-mono text-[0.84rem]">M(n)</span> 교차
+            <span class="font-normal text-slate-600 font-mono text-[0.84rem]">P</span>
+          </h2>
+          <div class="flex-1 min-h-0 min-w-0 flex items-center justify-center py-0.5">
+            <img
+              src="%E1%84%80%E1%85%A2%E1%84%82%E1%85%A7%E1%86%B7%20%E1%84%82%E1%85%AE%E1%84%8C%E1%85%A5%E1%86%A8%E1%84%90%E1%85%A9%E1%84%8F%E1%85%B3%E1%86%AB%20%E1%84%86%E1%85%A7%E1%86%BC%E1%84%92%E1%85%AA%E1%86%A8%E1%84%92%E1%85%AA%E1%84%90%E1%85%A5%E1%86%AB%E1%84%89%E1%85%AE.svg"
+              alt="누적 토큰과 명확화 턴 수 개념 그래프"
+              class="block h-auto max-h-full w-full max-w-full object-contain object-center mx-auto"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- 진행 ,  향후 확장 (9+3 열) -->
+      <div
+        class="sheet-bottom grid grid-cols-12 gap-1.5 mb-0 min-h-0 h-full min-w-0 overflow-hidden items-stretch"
+      >
+        <div
+          class="col-span-9 rounded-xl border border-slate-200/90 bg-white p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+        >
+          <h2
+            class="text-[1.02rem] font-bold text-slate-900 mb-1 flex items-center gap-1.5 border-b border-slate-200 pb-1 leading-tight shrink-0"
+          >
+            <span aria-hidden="true">📈</span> 진행 사항
+          </h2>
+          <div
+            class="grid grid-cols-3 gap-1.5 min-h-0 flex-1 text-[0.9rem] leading-snug text-slate-700 pt-1 overflow-hidden items-start"
+          >
+            <div class="min-w-0 border-r border-slate-100 pr-1">
+              <p class="m-0 mb-0.5 font-bold text-slate-900 flex items-center gap-0.5">
+                <span class="text-slate-500 shrink-0">✓</span> 4월
+              </p>
+              <ul class="m-0 pl-3 list-disc marker:text-slate-400 space-y-0">
+                <li>범위, 완료 기준, 리스크 문서</li>
+                <li>5단계, 룰렛 예시</li>
+                <li>데모, PrePrompt ZIP, 공개 링크</li>
+                <li>토큰 실험, 요약, 그래프</li>
+              </ul>
+            </div>
+            <div class="min-w-0 border-r border-slate-100 pr-1">
+              <p class="m-0 mb-0.5 font-bold text-slate-900 flex items-center gap-0.5">
+                <span class="text-slate-500 shrink-0">◐</span> 5월
+              </p>
+              <ul class="m-0 pl-3 list-disc marker:text-slate-400 space-y-0">
+                <li>내부 오케스트, 프롬프트 컴파일 고도화</li>
+                <li>필드 생성, 검증, 에러 등 코어 로직 정교화</li>
+                <li>엣지 케이스, 회귀 시나리오로 응답 품질 점검</li>
+              </ul>
+            </div>
+            <div class="min-w-0">
+              <p class="m-0 mb-0.5 font-bold text-slate-900 flex items-center gap-0.5">
+                <span class="text-slate-500 shrink-0">○</span> 6월~
+              </p>
+              <ul class="m-0 pl-3 list-disc marker:text-slate-400 space-y-0">
+                <li>시나리오 파일럿</li>
+                <li>실험 가설 재점검</li>
+                <li>피드백 반영, 이슈 백로그</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col-span-3 rounded-xl border border-slate-200/90 bg-white p-1.5 flex flex-col min-h-0 min-w-0 overflow-hidden h-full"
+        >
+          <h2
+            class="text-[1.02rem] font-bold text-slate-900 mb-1 flex items-center gap-1.5 border-b border-slate-200 pb-1 leading-tight shrink-0"
+          >
+            <span aria-hidden="true">→</span> 향후 확장
+          </h2>
+          <ul
+            class="text-[0.8rem] text-slate-600 leading-snug space-y-1.5 list-none m-0 p-0 pt-1 min-h-0 flex-1 flex flex-col justify-center overflow-hidden"
+          >
+            <li class="flex gap-1">
+              <span class="text-slate-400 shrink-0">•</span>
+              <span>도메인 템플릿 패키지, 카탈로그</span>
+            </li>
+            <li class="flex gap-1">
+              <span class="text-slate-400 shrink-0">•</span>
+              <span>벤치마크 리포트 시각화</span>
+            </li>
+            <li class="flex gap-1">
+              <span class="text-slate-400 shrink-0">•</span>
+              <span>멀티 LLM 파이프라인</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -12,7 +12,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { generateStructuredPrompt } from "@/lib/gemini";
+import { generateStructuredPrompt } from "@/lib/agent/generateStructuredPrompt";
 import { translations } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { CognitiveModel, usePromptStore } from "@/store/usePromptStore";
