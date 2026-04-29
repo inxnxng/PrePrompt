@@ -17,11 +17,16 @@ export default function AboutPage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <header className="border-b border-border px-6 py-4 flex items-center gap-4 bg-muted/20">
+            <header className="border-b border-border px-6 py-4 flex flex-wrap items-center gap-2 bg-muted/20">
                 <Link href="/">
                     <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                         <ArrowLeftIcon className="h-4 w-4" />
                         {t.about.backToHome}
+                    </Button>
+                </Link>
+                <Link href="/playbook">
+                    <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                        {t.navPlaybook}
                     </Button>
                 </Link>
             </header>

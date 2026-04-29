@@ -16,7 +16,8 @@ import { generateStructuredPrompt } from "@/lib/agent/generateStructuredPrompt";
 import { translations } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { CognitiveModel, usePromptStore } from "@/store/usePromptStore";
-import { PanelLeftCloseIcon, PanelLeftIcon, RotateCcwIcon } from "lucide-react";
+import { CompassIcon, PanelLeftCloseIcon, PanelLeftIcon, RotateCcwIcon } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export default function HomePage() {
@@ -209,6 +210,12 @@ export default function HomePage() {
                 <span className="truncate">{t.minimizeSidebar}</span>
               </>
             )}
+          </Button>
+          <Button variant="ghost" size={sidebarCollapsed ? "icon" : "sm"} className={sidebarFooterBtnClass} asChild>
+            <Link href="/playbook" aria-label={t.navPlaybook}>
+              <CompassIcon className="h-4 w-4" />
+              {sidebarCollapsed ? null : <span className="truncate">{t.navPlaybook}</span>}
+            </Link>
           </Button>
           <SettingsModal compact={sidebarCollapsed} triggerClassName={sidebarFooterBtnClass} />
           <Button

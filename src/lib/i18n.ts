@@ -14,6 +14,8 @@ export type Translation = {
   resetAll: string;
   minimizeSidebar: string;
   expandSidebar: string;
+  /** Nav label for /playbook (harness tradeoff playbook) */
+  navPlaybook: string;
   promptPreview: string;
   compiledPrompt: string;
   copy: string;
@@ -147,6 +149,7 @@ const en: Translation = {
   resetAll: "Reset All",
   minimizeSidebar: "Minimize sidebar",
   expandSidebar: "Expand sidebar",
+  navPlaybook: "Harness playbook",
   promptPreview: "Prompt Preview",
   compiledPrompt: "compiled prompt",
   copy: "Copy",
@@ -340,6 +343,7 @@ const ko: Translation = {
   resetAll: "초기화",
   minimizeSidebar: "사이드바 접기",
   expandSidebar: "사이드바 펼치기",
+  navPlaybook: "하네스 플레이북",
   promptPreview: "프롬프트 미리보기",
   compiledPrompt: "완성된 프롬프트",
   copy: "복사",

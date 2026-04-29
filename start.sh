@@ -13,7 +13,7 @@ fi
 mkdir -p "$ROOT/log"
 PIDFILE="$ROOT/log/server.pid"
 LOGFILE="$ROOT/log/server.log"
-PORT="${PORT:-3000}"
+PORT="${PORT:-3001}"
 
 if [[ -f "$PIDFILE" ]]; then
   old_pid="$(cat "$PIDFILE" 2>/dev/null || true)"
