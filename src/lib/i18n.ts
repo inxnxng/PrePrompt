@@ -144,7 +144,7 @@ export type Translation = {
 };
 
 const en: Translation = {
-  appSubtitle: "PrePrompt v1.0",
+  appSubtitle: "5-stage Harness for safe AI collaboration",
   settings: "Settings",
   resetAll: "Reset All",
   minimizeSidebar: "Minimize sidebar",
@@ -338,7 +338,7 @@ const en: Translation = {
 };
 
 const ko: Translation = {
-  appSubtitle: "PrePrompt v1.0",
+  appSubtitle: "안전한 AI 협업을 위한 5단계 하네스",
   settings: "설정",
   resetAll: "초기화",
   minimizeSidebar: "사이드바 접기",
