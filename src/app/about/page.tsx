@@ -4,7 +4,13 @@ import { STAGES } from "@/components/StageNav";
 import { Button } from "@/components/ui/button";
 import { translations } from "@/lib/i18n";
 import { usePromptStore } from "@/store/usePromptStore";
-import { ArrowLeftIcon, GithubIcon, GlobeIcon, InfoIcon, MailIcon } from "lucide-react";
+import { 
+    ArrowLeft as ArrowLeftIcon, 
+    CodeIcon,
+    Globe as GlobeIcon, 
+    Info as InfoIcon, 
+    Mail as MailIcon 
+  } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -110,7 +116,7 @@ export default function AboutPage() {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit"
                             >
-                                <GithubIcon className="h-4 w-4" />
+                                <CodeIcon className="h-4 w-4" />
                                 <span>{t.about.developerInfo.github}: https://github.com/inxnxng/PrePrompt</span>
                             </a>
                             <a
