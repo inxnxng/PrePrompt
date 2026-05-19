@@ -1,5 +1,6 @@
 "use client";
 
+import { SimilarSitesMarkdown } from "@/components/SimilarSitesMarkdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getHandoffArchetype } from "@/lib/handoffArchetypes";
@@ -11,19 +12,23 @@ import {
   resolveProgressShort,
   type HarnessGuideOption,
 } from "@/lib/harnessGuideContent";
+import { buildPlaybookNaturalPromptDraft } from "@/lib/playbook/buildPlaybookNaturalPromptDraft";
 import {
   fetchSimilarSitesRecommendation,
   MISSING_GEMINI_KEY,
 } from "@/lib/playbook/fetchSimilarSitesRecommendation";
+import { markPlaybookHomeNavigation } from "@/lib/playbook/playbookHomeSession";
 import { cn } from "@/lib/utils";
 import { usePromptStore } from "@/store/usePromptStore";
 import { ArrowLeftIcon, CompassIcon, Loader2Icon, RotateCcwIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 type Phase = "wizard" | "results";
 
 export function HarnessGuideWizard() {
+  const router = useRouter();
   const apiKey = usePromptStore((s) => s.apiKey);
   const llmProvider = usePromptStore((s) => s.llmProvider);
   const ui = HARNESS_GUIDE_UI;
@@ -126,6 +131,22 @@ export function HarnessGuideWizard() {
     llmProvider === "gemini" ? ui.similarSitesBackendGemini : ui.similarSitesBackendCursor;
 
   const canGoBack = phase === "results" || stepIndex > 0;
+
+  const handleSendDraftToHome = () => {
+    const topTemplate = rankedTemplates[0]?.template ?? null;
+    const draft = buildPlaybookNaturalPromptDraft({ picked, topTemplate });
+    const z = usePromptStore.getState();
+    z.setField("intentLock", "");
+    z.setField("realityAnchor", "");
+    z.setField("constraintCage", "");
+    z.setField("actionSlice", "");
+    z.setField("responseContract", "");
+    z.setField("deepPlan", null);
+    z.setField("orchestrationTokenTotal", null);
+    z.setField("naturalPrompt", draft);
+    markPlaybookHomeNavigation();
+    router.push("/");
+  };
 
   const remainingSteps = picked.filter((p) => p == null).length;
   const filledSteps = n - remainingSteps;
@@ -283,8 +304,7 @@ export function HarnessGuideWizard() {
                           </p>
                         ) : null}
                         <p className="text-[11px] text-foreground/90 border-t border-border/60 pt-3 leading-relaxed">
-                          전달 ZIP: 홈 화면 오른쪽 미리보기에서 유형 「{getHandoffArchetype(template.archetypeId).title}」을
-                          고른 뒤, 전달 대상(Cursor·Claude 등)을 선택하고 다운로드하세요.
+                          {ui.zipHandoffHint(getHandoffArchetype(template.archetypeId).title)}
                         </p>
                         <p className="text-[11px] font-mono text-muted-foreground/90">template_id: {template.id}</p>
                       </CardContent>
@@ -312,23 +332,34 @@ export function HarnessGuideWizard() {
                 ) : null}
                 <p className="text-[11px] text-muted-foreground leading-relaxed">{ui.similarSitesDisclaimer}</p>
                 {similarText ? (
-                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                    {similarText}
+                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-foreground">
+                    <SimilarSitesMarkdown text={similarText} />
                   </div>
                 ) : !similarLoading && !similarError ? (
                   <p className="text-sm text-muted-foreground">{ui.similarSitesEmptyHint}</p>
                 ) : null}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={handleStartOver}>
-                  {ui.startOver}
-                </Button>
-                <Link href="/" className="sm:ml-auto">
-                  <Button type="button" className="w-full sm:w-auto">
-                    {ui.openEditor}
+              <div className="space-y-3 pt-2">
+                <p className="text-xs text-muted-foreground leading-relaxed">{ui.sendToHomeDraftHint}</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleStartOver}
+                    className="w-full sm:w-auto sm:shrink-0 order-3 sm:order-1"
+                  >
+                    {ui.startOver}
                   </Button>
-                </Link>
+                  <div className="flex min-w-0 flex-col gap-2 sm:order-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:flex-1 order-1">
+                    <Button type="button" className="w-full sm:w-auto" onClick={handleSendDraftToHome}>
+                      {ui.sendToHomeDraft}
+                    </Button>
+                    <Button asChild variant="secondary" className="w-full sm:w-auto">
+                      <Link href="/">{ui.openEditorBare}</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
               <p className="text-[11px] text-muted-foreground">{ui.editorHint}</p>
             </section>

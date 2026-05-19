@@ -36,158 +36,155 @@ export const HANDOFF_ARCHETYPES: readonly HandoffArchetypeDefinition[] = [
     id: "lean_ide",
     matchTags: ["channel:ide", "tokens:tight", "depth:lean", "iteration:multi", "deliverable:code"],
     title: "토큰 절약형 IDE 루프",
-    shortHint: "범위는 좁게, 배경·환경은 얇게, MUST NOT은 단단히, 빌드 단계는 번호로.",
+    shortHint: "범위 좁게, 배경 얇게, MUST NOT 단단히, 단계는 번호로.",
     specAddendum: `## 전달 유형: 토큰 절약형 IDE 루프
 
-**핑퐁 비용**이 모든 사실을 앞에 쌓는 것보다 클 때 이 패키지를 씁니다.
+핑퐁 비용이 클 때 사용합니다.
 
-### 다섯 칸 읽는 법
+### 다섯 칸
 
-- **완료 기준**: 명령·경로·스크린샷 등 **검증 가능한** 체크—포부형 문장 금지.
-- **배경·환경**: 경로·스택·재현 앵커만 최소로; 서술 남발 금지.
-- **필수·금지**: 의존성·폴더·인증 방식 등 MUST NOT / NEVER를 명시.
-- **이번 작업 범위**: 한 화면 안에 안/밖; 미룬 일은 한 번만 이름 붙이기.
-- **작업 순서**: 경로에 묶인 **번호 있는** 명령형 단계; 마지막에 검증 명령.
+- 완료 기준: 검증 가능한 체크(경로·명령·스샷). 포부형 문장 금지.
+- 배경·환경: 경로·스택·재현 앵커만 최소.
+- 필수·금지: MUST NOT / NEVER 명시.
+- 이번 작업 범위: 안/밖 한 화면; 미룬 일은 한 줄로.
+- 작업 순서: 경로 묶인 번호 단계, 마지막에 검증 명령.
 
-### 에이전트 자세
+### 에이전트
 
-- SPEC를 다시 쓰기보다 **질문은 1~2개**로 끝내기.
-- 산출물은 **리뷰 가능한 패치** 형태를 우선합니다.`,
+- 질문은 1~2개로 끝내고 패치 단위 산출.`,
     agentsAddendum: `### 유형: 토큰 절약형 IDE 루프
 
-- **막히는 질문은 최대 두 개**; 그 외에는 작업 순서대로 진행합니다.
-- **범위 밖 리팩터 금지**—이번 작업 범위에 없으면 하지 않습니다.
-- 배경·환경이 얇으면 가정을 불릿으로 짧게 박고 진행합니다.`,
+- 막힐 때 질문 최대 두 개, 나머지는 순서대로.
+- 범위 밖 리팩터 금지.`,
     harnessAddendum: `## 유형 규율 (절약형 IDE)
 
-- 확인 질문을 줄이고, 완료 기준에 맞는 **수직 슬라이스**를 우선합니다.
-- 범위 계약은 \`SPEC.md\`와 \`preprompt.task.json\`만 따릅니다.`,
-    chatKickoff: "절약형 IDE 전달: SPEC.md·preprompt.task.json을 먼저 읽고 범위 안에서만 작업하세요. 막히는 질문은 최대 두 개, 이후 패치 단위로 구현하고 완료 기준으로 검증하세요.",
+- 수직 슬라이스 우선, 확인 질문 최소화.
+- 범위는 \`SPEC.md\`, \`preprompt.task.json\`만 따릅니다.`,
+    chatKickoff:
+      "절약형: SPEC·task JSON을 읽고 범위 안만. 질문 최대 두 개 후 패치로 구현하고 완료 기준으로 검증.",
   },
   {
     id: "spike_ide",
     matchTags: ["channel:ide", "speed:first", "context:minimal", "iteration:multi", "deliverable:code", "collab:solo"],
     title: "빠른 스파이크 (IDE)",
-    shortHint: "범위 최소, 학습 목표 허용, 안전 규칙은 단단, 빠른 반복.",
+    shortHint: "범위 최소, 학습 목표 OK, 안전 규칙 단단, 빠른 반복.",
     specAddendum: `## 전달 유형: 빠른 스파이크
 
-첫 산출이 **완성도**가 아니라 얇은 수직 슬라이스나 **학습 결과**일 때 씁니다.
+얇은 슬라이스·학습 결과가 1차 목표일 때.
 
-### 다섯 칸 읽는 법
+### 다섯 칸
 
-- **완료 기준**: **학습 목표**(무엇을 알게 되는지) + 관찰 가능한 데모 체크 한 가지를 허용.
-- **배경·환경**: 스파이크에 필요한 최소만—버전과 진입 경로 하나.
-- **필수·금지**: 안전 비협상(프로드 키·스키마 파괴 금지 등).
-- **이번 작업 범위**: 의도적으로 작게; 미룬 일은 범위 밖에 명시.
-- **작업 순서**: 최단 경로 단계; 후속 과제는 따로 표시.
+- 완료 기준: 학습 목표 + 관찰 가능한 데모 체크 하나.
+- 배경·환경: 버전·진입 경로 등 최소만.
+- 필수·금지: 안전 비협상(프로드 키·파괴적 변경 금지).
+- 이번 작업 범위: 작게; 미룬 일은 범위 밖에 명시.
+- 작업 순서: 최단 경로; 후속은 별도.
 
-### 에이전트 자세
+### 에이전트
 
-- 필수·금지 **안에서** 대안 제안 가능; 이후 패스를 전제로 합니다.`,
+- 필수·금지 안에서 대안 제안 가능.`,
     agentsAddendum: `### 유형: 빠른 스파이크
 
-- **신호까지의 시간**을 우선; 완성도는 다음 패스로 미룹니다.
-- 트레이드오프를 짧게 제시, 한 경로를 고르고 나머지는 범위 밖으로 남깁니다.`,
+- 신호까지의 시간 우선, 완성도는 다음 패스.
+- 한 경로 선택, 나머지는 범위 밖.`,
     harnessAddendum: `## 유형 규율 (스파이크)
 
-- 행동 우선; 범위는 의도적으로 작게 유지합니다.
-- 완료 기준에 없는 프로덕션 하드닝으로 확장하지 않습니다.`,
-    chatKickoff: "스파이크 전달: SPEC.md·preprompt.task.json을 읽고, 완료 기준을 만족하는 **가장 작은 수직 슬라이스**를 만드세요(학습 목표 허용). 범위 밖 후속은 명시만 하고, 명시되지 않은 프로덕션 하드닝은 하지 마세요.",
+- 범위 작게 유지, 완료 기준 밖 프로덕션 하드닝 금지.`,
+    chatKickoff:
+      "스파이크: SPEC·task JSON 읽고 가장 작은 수직 슬라이스. 후속·미명시 하드닝은 하지 않음.",
   },
   {
     id: "doc_oneshot",
     matchTags: ["channel:doc_flow", "quality:first", "context:rich", "iteration:oneshot", "deliverable:doc", "collab:team"],
     title: "문서·PR 원샷",
-    shortHint: "리뷰어가 같은 그림—결정·비목표·순서 있는 체크리스트.",
+    shortHint: "결정·비목표·순서 체크리스트로 리뷰어와 같은 그림.",
     specAddendum: `## 전달 유형: 문서·PR 원샷
 
-**PR·RFC·위키**에 붙고 비동기 리뷰를 견뎌야 할 때 씁니다.
+PR·RFC·위키 등 비동기 리뷰용.
 
-### 다섯 칸 읽는 법
+### 다섯 칸
 
-- **완료 기준**: 리뷰어가 통과/실패 말할 수 있는 불릿; 필요하면 병합될 문구·다이어그램과 연결.
-- **배경·환경**: 이미 내려진 결정, 링크, diff만으로 안 보이는 제약.
-- **필수·금지**: 포맷·네이밍·보안·컴플라이언스 등 리뷰에서 걸릴 항목.
-- **이번 작업 범위**: 이 문서/PR이 소유하는 것; 연관되나 이번에 안 하는 일은 링크로 분리.
-- **작업 순서**: 리뷰 코멘트·RFC 절과 맞춘 **순서 있는** 체크리스트.
+- 완료 기준: 통과/실패 말할 수 있는 불릿.
+- 배경·환경: 내려진 결정·링크·diff 밖 제약.
+- 필수·금지: 포맷·보안·컴플라이언스.
+- 이번 작업 범위: 이 문서 소유분; 나머지는 링크로 분리.
+- 작업 순서: 리뷰 흐름에 맞는 체크리스트.
 
-### 에이전트 자세
+### 에이전트
 
-- 확인 라운드를 줄이려면 결정·비목표를 **앞에** 박습니다.`,
+- 결정·비목표를 앞에 두어 확인 라운드 축소.`,
     agentsAddendum: `### 유형: 문서·PR 원샷
 
-- 이 묶음**만** 읽는 리뷰어를 가정합니다.
-- 말투보다 **비목표·결정 기록**을 우선합니다.`,
+- 이 묶음만 읽는 리뷰어 가정.
+- 말투보다 결정·비목표 기록.`,
     harnessAddendum: `## 유형 규율 (문서 원샷)
 
-- 리뷰에서 **수락/거절**이 분명하도록 씁니다.
-- 채팅 말투 규칙은 넣지 않습니다—대화가 아니라 계약입니다.`,
-    chatKickoff: "문서/PR 원샷: SPEC.md·preprompt.task.json을 리뷰 계약으로 읽으세요. 확인 질문보다 앞에 박힌 결정·비목표가 우선입니다. 리뷰어가 수락/거절할 수 있는 체크리스트형 산출을 만드세요.",
+- 수락/거절이 분명한 문장. 대화 말투 규칙은 넣지 않음.`,
+    chatKickoff: "문서 원샷: SPEC·task JSON을 계약으로 읽고, 결정·비목표 우선, 체크리스트형 산출.",
   },
   {
     id: "review_audit",
     matchTags: ["deliverable:review", "quality:first", "context:rich", "iteration:oneshot", "collab:team", "stakes:security"],
     title: "리뷰·감사 패스",
-    shortHint: "근거·통과/실패·몰래 리팩터 금지—보안·범위 경계를 명시.",
+    shortHint: "근거·통과/실패, 몰래 리팩터 금지, 범위 명시.",
     specAddendum: `## 전달 유형: 리뷰·감사
 
-**리스크·보안·컴플라이언스·아키텍처** 점검용이지 기능 개발용이 아닐 때 씁니다.
+보안·컴플라이언스·아키 점검(기능 개발 아님).
 
-### 다섯 칸 읽는 법
+### 다섯 칸
 
-- **완료 기준**: 요건별 **관찰 가능한 근거**와 명시적 통과/실패.
-- **배경·환경**: 신뢰 경계, 데이터 흐름, 위협 모델 앵커.
-- **필수·금지**: 법·안전 금지; 승인 없이 바뀌면 안 되는 것.
-- **이번 작업 범위**: 명시되지 않으면 **판정만**; 코드 수정은 **작업 순서**에 있을 때만.
-- **작업 순서**: 수정이 범위에 있으면 번호 목록; 아니면 **발견 사항만**.
+- 완료 기준: 요건별 근거 + 통과/실패.
+- 배경·환경: 신뢰 경계·데이터 흐름·위협 앵커.
+- 필수·금지: 법·안전·승인 없이 바뀌면 안 되는 것.
+- 이번 작업 범위: 미명시면 판정만; 수정은 순서에 있을 때만.
+- 작업 순서: 수정 범위면 번호 목록, 아니면 발견만.
 
-### 에이전트 자세
+### 에이전트
 
-- **몰래 리팩터 금지.** 작업 순서에 없으면 판정 범위만 수행합니다.`,
+- 몰래 리팩터 금지.`,
     agentsAddendum: `### 유형: 리뷰·감사
 
-- **근거가 있는 발견**(경로·명령·재현)을 만듭니다.
-- **반드시 수정**과 **권고**를 구분하고, 범위를 몰래 넓히지 않습니다.`,
+- 경로·명령·재현이 있는 발견.
+- 수정 vs 권고 구분, 범위 확장 금지.`,
     harnessAddendum: `## 유형 규율 (리뷰·감사)
 
-- 모든 주장은 **검증 가능**하게 만듭니다.
-- 구현이 범위 밖이면 권고에서 멈춥니다.`,
-    chatKickoff: "리뷰·감사 전달: SPEC.md·preprompt.task.json을 읽고, 요건별 통과/실패를 **근거와 함께** 제시하세요. 몰래 리팩터 금지; 구현이 명시되지 않으면 판정만 수행합니다.",
+- 주장은 검증 가능하게. 구현이 범위 밖이면 권고에서 멈춤.`,
+    chatKickoff: "리뷰·감사: SPEC·task JSON 읽고 요건별 통과/실패+근거. 미명시 구현·몰래 리팩터 금지.",
   },
   {
     id: "balanced",
     matchTags: ["channel:mixed", "tokens:balanced", "pace:balanced", "context:balanced", "deliverable:mixed"],
     title: "균형형 스타터",
-    shortHint: "기본 혼합—명확한 기준·솔직한 배경·환경·필수·금지 몇 줄·명시적 범위·순서 있는 단계.",
+    shortHint: "기본값: 검증 가능한 기준·적당한 맥락·금지 몇 줄·명시적 범위·순서 단계.",
     specAddendum: `## 전달 유형: 균형형 스타터
 
-아직 극단 패턴에 안 맞을 때의 기본값입니다.
+극단 패턴 전 기본값.
 
-### 다섯 칸 읽는 법
+### 다섯 칸
 
-- **완료 기준**: 분명하고 검증 가능한 결과.
-- **배경·환경**: 신규 참여자가 길을 잃지 않을 정도의 맥락.
-- **필수·금지**: 스타일 선호가 아니라 **진짜 금지** 몇 줄.
-- **이번 작업 범위**: 안/밖 명시; 미룬 일은 이름 붙이기.
-- **작업 순서**: 검증을 포함한 순서 있는 단계.
+- 완료 기준: 검증 가능.
+- 배경·환경: 신규도 길 잃지 않을 분량.
+- 필수·금지: 스타일이 아니라 진짜 금지만.
+- 이번 작업 범위: 안/밖·미룬 일 이름.
+- 작업 순서: 검증 포함 단계.
 
-### 에이전트 자세
+### 에이전트
 
-- 막히면 **소수의** 확인 질문은 허용합니다.
+- 막히면 짧은 확인 질문 허용.
 
-### 목표가 서로 깨질 때 (우선순위 계약)
+### 목표 충돌 시
 
-- **완료 기준** 칸: 충돌하는 목표를 한 줄씩 적고, **먼저 지킬 것**과 **이번 전달에서 양보하는 것**을 같은 칸에 둡니다.
-- **이번 작업 범위** 칸: 양보한 목표가 **다음 전달**로 미뤄지는지, **이번에 명시적으로 out**인지 적습니다.
-- **필수·금지**는 흔들지 말고, 우선순위는 사실·제약으로만 적습니다(설득형 에세이가 아니라 다운스트림이 따를 계약).`,
+- 완료 기준 칸에 충돌 목표·지킬 것·양보할 것 한 블록.
+- 범위 칸에 미룬 목표(out/다음 전달) 명시.
+- 필수·금지는 유지, 우선순위는 사실·제약만.`,
     agentsAddendum: `### 유형: 균형형 스타터
 
-- SPEC·task JSON을 따르고, 막힐 때만 간결하게 질문합니다.
-- 범위를 흔들지 말고, 후속은 다음 전달로 쪼갭니다.`,
+- SPEC·task JSON 준수, 막힐 때만 짧게 질문.
+- 후속은 다음 전달로 분리.`,
     harnessAddendum: `## 유형 규율 (균형)
 
-- 깊이와 실용성의 균형; 에세이형·과소명세 범위 둘 다 피합니다.`,
-    chatKickoff: "균형형 전달: SPEC.md·preprompt.task.json을 읽고 범위 안에서 구현하세요. 막힐 때만 집중 질문을 하고 완료 기준으로 검증합니다. 미룬 일은 다음 전달을 위해 명시적으로 남깁니다.",
+- 에세이·과소명세 범위 모두 피함.`,
+    chatKickoff: "균형형: SPEC·task JSON 읽고 범위 내 구현. 막힐 때만 질문, 미룬 일은 명시적으로 분리.",
   },
 ];
 
@@ -225,219 +222,219 @@ export type HarnessGuideTemplate = {
 export const HARNESS_GUIDE_STEPS: HarnessGuideStep[] = [
   {
     id: "surface",
-    question: "이 전달을 **처음으로** 어디에 붙여 넣나요? 첫날에 통해야 하는 화면이 어디인가요?",
+    question: "이 전달이 처음 붙는 곳은?",
     options: [
       {
         id: "ch_ide",
         tags: ["channel:ide", "theme:engineering"],
         label: "IDE 에이전트 (Cursor, Copilot류, 로컬 규칙)",
         progressShort: "IDE",
-        hint: "레포 경로·하네스 파일·패치형 작업이 중심입니다. 배경·환경·작업 순서 칸을 촘촘히 쓰는 편이 좋아요.",
+        hint: "경로·하네스·패치 중심. 배경·작업 순서를 촘촘히.",
       },
       {
         id: "ch_chat",
         tags: ["channel:chat", "theme:async_comms"],
         label: "팀 채팅 스레드 (Slack, Teams, Discord)",
         progressShort: "채팅",
-        hint: "스레드는 금방 묻힙니다. 긴 환경 설명보다 첫 메시지에 완료 기준·범위 안·밖이 이깁니다.",
+        hint: "첫 메시지에 완료 기준·범위 안/밖이 긴 환경설명보다 낫습니다.",
       },
       {
         id: "ch_ticket",
         tags: ["channel:ticket", "theme:ops"],
         label: "티켓·온콜·지라형 큐",
         progressShort: "티켓",
-        hint: "재현·영향·롤백·담당이 핵심입니다. 필수·금지·완료 기준 칸에 그대로 반영하세요.",
+        hint: "재현·영향·롤백·담당을 필수·금지·완료 기준에 반영.",
       },
       {
         id: "ch_cx",
         tags: ["channel:cx", "theme:customer_copy"],
         label: "고객 대면 (메일, 인앱, 헬프센터)",
         progressShort: "고객",
-        hint: "톤·법무·로케일은 필수·금지 칸에, 완료 기준은 검수자가 ‘통과/실패’ 말할 수 있게 쓰세요.",
+        hint: "톤·법무는 필수·금지, 완료 기준은 검수자가 통과/실패 말할 수 있게.",
       },
       {
         id: "ch_doc",
         tags: ["channel:doc_flow", "theme:knowledge"],
         label: "문서·PR 설명·RFC·위키",
         progressShort: "문서",
-        hint: "리뷰 가능한 결정·비목표·순서 있는 체크리스트가 핵심입니다. 작업 순서 칸에 두세요.",
+        hint: "결정·비목표·순서 체크리스트를 작업 순서에.",
       },
       {
         id: "ch_live",
         tags: ["channel:live", "theme:sync_review"],
         label: "실시간 회의·화면 공유 (이후 정리)",
         progressShort: "실시간",
-        hint: "전달문은 ‘회의 후 스냅샷’입니다. 안건이 아니라 합의된 결정을 완료 기준·범위에 박으세요.",
+        hint: "회의 후 스냅샷: 합의된 결정을 완료 기준·범위에 박기.",
       },
       {
         id: "ch_mixed",
         tags: ["channel:mixed"],
-        label: "복합이거나 아직 표면이 정해지지 않음",
+        label: "복합이거나 표면 미정",
         progressShort: "복합",
-        hint: "이번 작업 범위 칸에 안·밖을 문자 그대로 쓰고, 표면이 정해질 때까지 채널 전용 용어는 줄이세요.",
+        hint: "범위 칸에 안/밖을 문자로; 채널 전용 용어는 줄이기.",
       },
     ],
   },
   {
     id: "stakes",
-    question: "독자나 에이전트가 빗나가면 **가장 아픈 것**은 무엇인가요?",
+    question: "빗나가면 가장 큰 손해는?",
     options: [
       {
         id: "stakes_rework",
         tags: ["stakes:rework", "tokens:tight", "depth:lean"],
-        label: "재작업·핑퐁으로 시간·토큰이 새는 것",
+        label: "재작업·핑퐁으로 시간·토큰 소모",
         progressShort: "재작업",
-        hint: "범위를 좁히고 배경·환경은 짧게, 작업 순서는 번호 목록으로—열린 질문을 줄이세요.",
+        hint: "범위 좁히기, 배경 짧게, 순서는 번호 목록.",
       },
       {
         id: "stakes_schedule",
         tags: ["stakes:schedule", "quality:first", "iteration:oneshot"],
-        label: "날짜·SLA·약속한 단위를 놓치는 것",
+        label: "날짜·SLA·약속 단위 놓침",
         progressShort: "일정",
-        hint: "완료 기준은 그 단위에 묶인 예/아니오 검사로. 같은 전달에 ‘있으면 좋은 것’을 섞지 마세요. 다른 목표(품질·범위 등)와 충돌하면 한 줄로 **우선순위**를 완료 기준·이번 작업 범위 칸에 박으세요.",
+        hint: "완료 기준은 예/아니오로. 충돌 시 우선순위 한 줄을 완료 기준·범위에.",
       },
       {
         id: "stakes_security",
         tags: ["stakes:security", "quality:first", "context:rich", "deliverable:review"],
         label: "보안·컴플라이언스·데이터 노출",
         progressShort: "리스크",
-        hint: "먼저 필수·금지, 그다음 신뢰 경계가 드러나는 배경·환경. 완료 기준에 감사·검증 가능한 항목을 넣으세요.",
+        hint: "필수·금지 먼저, 신뢰 경계는 배경에. 완료 기준에 검증 가능 항목.",
       },
       {
         id: "stakes_wrong_product",
         tags: ["stakes:wrong_product", "quality:first", "context:rich", "iteration:oneshot"],
-        label: "요구를 잘못 읽고 엉뚱한 것을 만드는 것",
+        label: "요구 오해로 엉뚱한 산출",
         progressShort: "오해",
-        hint: "의도가 고정되기 전에 구현 단계로 가지 마세요. 배경·환경·사용자에게 보이는 완료 기준을 앞에 두세요.",
+        hint: "의도 고정 전 구현 금지. 사용자에게 보이는 완료 기준을 앞에.",
       },
       {
         id: "stakes_alignment",
         tags: ["stakes:alignment", "collab:team", "context:rich", "quality:first"],
-        label: "팀 기대 불일치·리뷰에서 같은 논의 반복",
+        label: "팀 기대 불일치·같은 논의 반복",
         progressShort: "합의",
-        hint: "결정·비목표·파일 소유를 이번 작업 범위 칸에. 리뷰어가 같은 그림을 보도록 완료 기준을 문서형으로 쓰세요. 일정·리스크와 겹치면 **충돌하는 목표**를 나열한 뒤 이번 전달에서 지킬 것·양보할 것을 같은 칸에 적어 계약으로 남기세요.",
+        hint: "결정·비목표·소유를 범위에. 일정과 겹치면 지킬 것/양보를 같은 칸에.",
       },
     ],
   },
   {
     id: "proof",
-    question: "이 전달이 끝났다는 것을 **무엇으로 증명**할 건가요?",
+    question: "끝났음을 무엇으로 증명하나요?",
     options: [
       {
         id: "proof_automation",
         tags: ["proof:automation", "iteration:oneshot", "quality:first"],
         label: "자동화: 테스트·CI·린트·빌드 통과",
         progressShort: "CI",
-        hint: "작업 순서 칸에 실행할 명령을 박고, 완료 기준은 그 출력·동작을 가리키세요.",
+        hint: "순서 칸에 명령, 완료 기준은 출력·동작을 가리키기.",
       },
       {
         id: "proof_self",
         tags: ["proof:self_check", "iteration:multi", "tokens:balanced"],
         label: "본인 확인: 로컬 재현·스크린샷·임시 체크리스트",
         progressShort: "본인",
-        hint: "재현 절차는 배경·환경에, 완료 기준은 CI 없이도 관찰 가능하게 쓰세요.",
+        hint: "재현은 배경에, 완료 기준은 CI 없이도 관찰 가능하게.",
       },
       {
         id: "proof_review",
         tags: ["proof:pr_review", "collab:team", "quality:first"],
-        label: "사람 검토: PR 승인 또는 명시적 사인오프",
+        label: "사람 검토: PR 승인 또는 사인오프",
         progressShort: "리뷰",
-        hint: "범위·건드릴 파일 목록을 이번 작업 범위 칸에. 완료 기준은 리뷰어가 수락/거절 말할 수 있게.",
+        hint: "건드릴 파일·범위는 범위 칸, 완료 기준은 수락/거절 가능하게.",
       },
       {
         id: "proof_consensus",
         tags: ["proof:doc_consensus", "channel:doc_flow", "deliverable:doc", "quality:first"],
-        label: "문서 합의: RFC·PR 코멘트에서 합의된 내용",
+        label: "문서 합의: RFC·PR 코멘트 합의분",
         progressShort: "합의",
-        hint: "결정을 코멘트·문서 앵커에 묶고, 작업 순서 칸은 합의된 체크리스트를 그대로 따르게 하세요.",
+        hint: "결정을 코멘트·문서에 앵커, 순서는 합의 체크리스트 그대로.",
       },
       {
         id: "proof_spike",
         tags: ["proof:unknown", "speed:first", "context:minimal", "iteration:multi"],
-        label: "아직 없음—탐색·스파이크 단계",
+        label: "아직 없음 — 탐색·스파이크",
         progressShort: "스파이크",
-        hint: "완료 기준을 ‘학습 목표’로 둘 수는 있어도, 필수·금지로 안전 경로는 막으세요. 범위는 최소로.",
+        hint: "학습 목표는 OK, 필수·금지로 안전은 막고 범위는 최소.",
       },
     ],
   },
   {
     id: "agent_freedom",
-    question: "에이전트에게 허용할 **탐색·질문·왕복**은 어느 정도인가요?",
+    question: "에이전트 탐색·질문·왕복은 어느 정도까지?",
     options: [
       {
         id: "agent_prescriptive",
         tags: ["iteration:oneshot", "tokens:tight", "depth:lean"],
-        label: "최소—체크리스트 실행; 막힐 때만 질문",
+        label: "최소 — 체크리스트 실행, 막힐 때만 질문",
         progressShort: "촘촘",
-        hint: "작업 순서 칸은 길게, 확인은 짧게. 원샷 압력과 맞습니다.",
+        hint: "순서 칸은 길게, 확인은 짧게.",
       },
       {
         id: "agent_standard",
         tags: ["iteration:multi", "tokens:balanced", "pace:balanced", "context:balanced"],
-        label: "보통—빈칸은 소수의 집중 질문으로 메워도 됨",
+        label: "보통 — 집중 질문으로 빈칸 일부 보완",
         progressShort: "보통",
-        hint: "배경·환경와 ‘범위 밖’을 균형 있게. 확인 라운드 1~2회를 전제로 쓰세요.",
+        hint: "배경과 범위 밖 균형, 확인 1~2회 전제.",
       },
       {
         id: "agent_exploratory",
         tags: ["iteration:multi", "speed:first", "context:minimal"],
-        label: "탐색형—제약 안에서 대안 제안 허용",
+        label: "탐색형 — 제약 안 대안 제안 허용",
         progressShort: "탐색",
-        hint: "필수·금지는 단단히, 범위는 작게, 배경·환경은 얇게. 속도는 반복으로, 앞장 에세이로가 아닙니다.",
+        hint: "금지는 단단히, 범위는 작게, 배경은 얇게. 반복으로 속도.",
       },
     ],
   },
   {
     id: "deliverable",
-    question: "돌려받아야 할 **1차 산출물**은 무엇에 가깝나요?",
+    question: "1차 산출물은 무엇에 가깝나요?",
     options: [
       {
         id: "deliv_code",
         tags: ["deliverable:code"],
         label: "코드·패치·실행 가능한 변경",
         progressShort: "코드",
-        hint: "작업 순서 칸에 경로·검증 명령, 배경·환경 칸에 스택·진입점을 고정하세요.",
+        hint: "순서에 경로·검증 명령, 배경에 스택·진입점.",
       },
       {
         id: "deliv_doc",
         tags: ["deliverable:doc"],
-        label: "문서형 스펙·계획·ADR류 서술",
+        label: "문서형 스펙·계획·ADR류",
         progressShort: "문서",
-        hint: "완료 기준은 수용 테스트 불릿처럼, 필수·금지는 형식·비목표를 덮으세요.",
+        hint: "완료 기준은 수용 테스트형, 필수·금지는 형식·비목표.",
       },
       {
         id: "deliv_review",
         tags: ["deliverable:review"],
-        label: "리뷰 결과·리스크 목록·통과/실패 판정",
+        label: "리뷰·리스크·통과/실패 판정",
         progressShort: "리뷰",
-        hint: "완료 기준에 관찰 가능한 근거를. 범위는 판정까지이고 ‘몰래 리팩터’는 범위 밖으로.",
+        hint: "근거 있는 완료 기준, 범위는 판정까지, 몰래 리팩터는 밖.",
       },
       {
         id: "deliv_mixed",
         tags: ["deliverable:mixed"],
-        label: "혼합 (코드 + 설명이 한 패키지)",
+        label: "혼합 (코드 + 설명 한 패키지)",
         progressShort: "혼합",
-        hint: "코드 단계는 작업 순서 칸에, 설명형 산출은 완료 기준에 나눠 쓰세요.",
+        hint: "코드는 순서, 설명은 완료 기준에 나누기.",
       },
     ],
   },
   {
     id: "audience",
-    question: "내가 없을 때도 이 전달만 읽고 이해해야 하는 **주 독자**는 누구인가요?",
+    question: "나 없이도 이 전달만 읽는 주 독자는?",
     options: [
       {
         id: "collab_solo",
         tags: ["collab:solo"],
         label: "나만 (솔로 루프)",
         progressShort: "솔로",
-        hint: "미래의 나만 본다면 배경·환경를 줄여도 됩니다. 다만 완료 기준은 정직하게 두세요.",
+        hint: "배경은 줄여도 완료 기준은 정직하게.",
       },
       {
         id: "collab_team",
         tags: ["collab:team"],
         label: "동료·리뷰어·온콜",
         progressShort: "팀",
-        hint: "비공개 맥락이 없다고 가정하세요. 경로·오너·범위 안·밖이 사실상 필수입니다.",
+        hint: "비공개 맥락 없다 가정. 경로·오너·범위 안/밖 필수.",
       },
     ],
   },
@@ -456,11 +453,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "stakes:rework",
     ],
     title: "토큰 절약형 코드 전달",
-    description: "이번 작업 범위를 좁히고 배경·환경은 짧게, 필수·금지는 강하게. 배경·환경 칸을 과하게 채우기보다 확인 질문을 소수 허용하는 패턴입니다.",
-    reasons: [
-      "핑퐁 비용이 아픈데 반복 다듬기는 허용할 때 맞습니다.",
-      "좁은 범위·짧은 배경·환경 요약·번호 있는 실행 단계를 강조해요.",
-    ],
+    description: "범위 좁게, 배경 짧게, 금지 강하게. 짧은 확인 질문과 번호 단계.",
+    reasons: ["핑퐁 비용이 큰데 반복은 허용할 때.", "좁은 범위·짧은 맥락·실행 단계 강조."],
     bundleHint: "예정: 슬림 SPEC + .mdc 스타터 zip.",
   },
   {
@@ -477,11 +471,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "proof:doc_consensus",
     ],
     title: "원샷 SPEC·문서 패키지",
-    description: "리뷰어가 같은 그림을 보게 배경·환경·완료 기준을 앞에 두고, 작업 순서 칸은 단계별 체크리스트로 고정합니다. 채팅 말투 규칙이 아니라 실행·검증에 집중해요.",
-    reasons: [
-      "팀 합의·문서형 합의·지시형 실행 흐름과 맞습니다.",
-      "문서 산출·원샷형 검증 전제와 잘 맞습니다.",
-    ],
+    description: "리뷰어가 같은 그림을 보도록 앞에 맥락·완료 기준, 순서는 체크리스트로.",
+    reasons: ["팀·문서 합의와 지시형 흐름.", "문서 산출·원샷 검증 전제."],
     bundleHint: "예정: SPEC 템플릿 + AGENTS.md zip.",
   },
   {
@@ -497,11 +488,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "proof:unknown",
     ],
     title: "빠른 스파이크 경로",
-    description: "범위를 아주 작게, 배경·환경은 최소로, 범위 밖을 한 줄로 박아요. 첫 패스는 완전함보다 빠른 수직 슬라이스를 노립니다.",
-    reasons: [
-      "스파이크 단계·탐색형 에이전트·IDE 루프와 맞습니다.",
-      "얇은 배경·환경·명시적 범위 밖·완전함보다 속도.",
-    ],
+    description: "범위 최소, 배경 얇게, 범위 밖 한 줄. 첫 패스는 속도 우선.",
+    reasons: ["스파이크·탐색형 에이전트·IDE 루프.", "완전함보다 얇은 슬라이스."],
     bundleHint: "예정: 최소 task JSON + 채팅 한 줄 팩.",
   },
   {
@@ -518,11 +506,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "stakes:security",
     ],
     title: "리뷰·감사 하네스",
-    description: "필수·금지, 관찰 가능한 완료 기준, 비목표를 선명히 합니다. 보안·컴플라이언스·아키텍처 리뷰 패스에 맞춘 전달입니다.",
-    reasons: [
-      "보안·컴플라이언스 리스크와 관찰 가능한 통과/실패 검사.",
-      "리뷰 산출·촘촘한 에이전트·팀 독자.",
-    ],
+    description: "금지·완료 기준·비목표를 선명히. 보안·컴플라이언스·아키 점검용.",
+    reasons: ["리스크와 통과/실패 검사.", "리뷰 산출·촘촘한 에이전트·팀 독자."],
     bundleHint: "예정: 체크리스트 중심 리뷰어용 zip.",
   },
   {
@@ -539,11 +524,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "deliverable:mixed",
     ],
     title: "균형형 PrePrompt 스타터",
-    description: "다섯 칸을 균형 있게: 완료 기준·솔직한 배경·환경·필수·금지 몇 줄·명시적 범위 안·밖·단계별 작업 순서.",
-    reasons: [
-      "극단 선택 없이 섞인 목표에 맞습니다.",
-      "아직 하네스 형태를 찾는 중일 때 좋습니다.",
-    ],
+    description: "다섯 칸 균형: 기준·맥락·금지·범위 안/밖·순서.",
+    reasons: ["극단 없이 섞인 목표.", "형태를 아직 고르는 중일 때."],
     bundleHint: "예정: 메인 앱 export 트리와 같은 범용 zip.",
   },
   {
@@ -560,11 +542,8 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     ],
     title: "목표 충돌·우선순위 전달",
     description:
-      "일정·SLA와 팀 합의·문서 합의가 동시에 걸릴 때, 완료 기준과 이번 작업 범위 칸에 **서로 깨는 목표**를 짧게 나열하고 **우선순위**(지킬 것 vs 이번에 양보)를 제약으로 박습니다. 에이전트가 ‘조언’이 아니라 **계약**으로 읽도록 맥락을 줍니다.",
-    reasons: [
-      "일정 리스크와 합의 리스크가 같이 잡힌 태그 조합과 맞습니다.",
-      "다섯 칸에 근거 한 줄(왜 이 우선순위인지)을 실을 때 이 템플릿이 가깝습니다.",
-    ],
+      "일정·합의가 겹칠 때 완료 기준·범위 칸에 충돌 목표와 우선순위(지킬 것/양보)를 짧게. 계약으로 읽히게.",
+    reasons: ["일정+합의 태그가 같이 잡힐 때.", "근거 한 줄을 같은 칸에 실을 때."],
     bundleHint: "예정: 균형형 zip + SPEC에 우선순위 소절.",
   },
 ];
@@ -587,7 +566,12 @@ export const HARNESS_GUIDE_UI: {
   similarSitesBackendCursor: string;
   similarSitesEmptyHint: string;
   startOver: string;
+  /** Primary: fill home step-0 draft from playbook picks, then go home */
+  sendToHomeDraft: string;
+  sendToHomeDraftHint: string;
   openEditor: string;
+  /** Open home without overwriting the store */
+  openEditorBare: string;
   editorHint: string;
   backStep: string;
   notChosen: string;
@@ -601,30 +585,29 @@ export const HARNESS_GUIDE_UI: {
   stepsRemaining: (n: number) => string;
   /** Progress cell: can jump back to re-pick */
   progressJumpToEdit: string;
+  /** Results card: ZIP download hint with dynamic archetype title */
+  zipHandoffHint: (archetypeTitle: string) => string;
 } = {
   pageTitle: "하네스 플레이북",
   pageSubtitle:
-    "메인 에디터 다섯 칸(완료 기준 / 배경·환경 / 필수·금지 / 이번 작업 범위 / 작업 순서)을 어떻게 채울지, 아래 여섯 질문으로 방향을 잡습니다. 첫 표면, 실패 시 가장 아픈 지점, 완료 증명 방법, 에이전트 왕복 허용 범위, 1차 산출물, 나 없이 읽어야 할 독자. 태그로 스타터 템플릿 순위를 매기고, 비슷한 사이트 추천은 버튼을 눌렀을 때만 자동 구조화에 쓰는 백엔드로 전달됩니다.",
+    "여섯 질문으로 전달 방향을 잡고, 태그로 스타터 템플릿을 추천합니다. 비슷한 사이트는 버튼을 눌렀을 때만 요청됩니다.",
   backHome: "홈으로",
   stepLabel: (c, t) => `${c} / ${t} 단계`,
   recommendedTitle: "추천 템플릿",
   matchScore: (n) => `맞춤 점수: ${n}`,
   reasonsTitle: "왜 맞는지",
   similarSitesTitle: "비슷한 사이트 추천",
-  similarSitesIntro:
-    "버튼을 누르기 전까지는 요청이 나가지 않습니다. 설정의 자동 구조화 백엔드와 동일합니다(Gemini는 API 키, Cursor Agent는 이 PC의 CLI).",
-  similarSitesDisclaimer:
-    "답변은 모델이 생성한 것이며, PrePrompt가 외부 페이지를 대신 열어보거나 검증하지 않습니다. 링크는 본인 책임으로 확인하세요.",
+  similarSitesIntro: "버튼 전까지는 요청이 나가지 않습니다. 홈의 자동 구조화와 같은 백엔드(Gemini 키 또는 Cursor CLI)입니다.",
+  similarSitesDisclaimer: "모델 생성 답변입니다. 링크는 직접 확인하세요.",
   similarSitesButton: "비슷한 사이트 추천받기",
   similarSitesLoading: "에이전트에 질문하는 중…",
-  similarSitesNeedApiKey: "설정에서 Gemini API 키를 넣거나, 자동 구조화를 Cursor Agent로 바꿔 주세요.",
+  similarSitesNeedApiKey: "Gemini 키를 넣거나 자동 구조화를 Cursor Agent로 바꿔 주세요.",
   similarSitesBackendGemini: "백엔드: Google Gemini",
   similarSitesBackendCursor: "백엔드: Cursor Agent (로컬 CLI)",
-  similarSitesEmptyHint: "버튼을 누르면 여기에 추천이 표시됩니다.",
+  similarSitesEmptyHint: "버튼을 누르면 여기에 표시됩니다.",
   startOver: "처음부터",
   openEditor: "메인 에디터로",
-  editorHint:
-    "홈 오른쪽 미리보기 ‘전달 유형’에서 아래와 같은 이름을 고른 뒤, 전달 대상(Cursor 등)만 골라 ZIP을 받을 수 있습니다.",
+  editorHint: "ZIP은 홈 미리보기에서 전달 유형과 대상을 고른 뒤 받으세요.",
   backStep: "이전 단계",
   notChosen: "—",
   resultsTitle: "추천 결과",
@@ -632,5 +615,9 @@ export const HARNESS_GUIDE_UI: {
   progressPending: "…",
   progressComplete: "모든 단계 선택 완료",
   stepsRemaining: (n) => (n === 1 ? "남은 단계 1" : `남은 단계 ${n}`),
-  progressJumpToEdit: "이 단계로 돌아가서 다시 선택할 수 있어요",
+  progressJumpToEdit: "탭하면 이 단계로 돌아가 다시 고를 수 있어요",
+  sendToHomeDraft: "홈에 초안 넣기",
+  sendToHomeDraftHint: "선택을 자연어 초안으로 스텝 0에 넣고 이동합니다. 다른 필드는 비웁니다.",
+  openEditorBare: "초안 없이 홈으로",
+  zipHandoffHint: (t) => `ZIP: 홈 미리보기에서 「${t}」 유형과 전달 대상을 고른 뒤 다운로드하세요.`,
 };

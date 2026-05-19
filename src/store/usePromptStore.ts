@@ -1,4 +1,5 @@
 import { normalizeDeepPlan, type DeepPlan } from "@/lib/deepPlan";
+import { stripMarkdownBoldMarkers } from "@/lib/stripMarkdownBoldMarkers";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -33,9 +34,14 @@ export type CognitiveModel = {
     cursorAgentModel: string;
 };
 
+/** Saved to shared history — excludes secrets and ephemeral UI flags. */
+export type HandoffHistorySnapshot = Omit<CognitiveModel, "apiKey" | "isGenerating">;
+
 type PromptStore = CognitiveModel & {
     setField: <K extends keyof CognitiveModel>(field: K, value: CognitiveModel[K]) => void;
     reset: () => void;
+    /** Apply a server-stored handoff snapshot; keeps current apiKey and isGenerating. */
+    applyHistorySnapshot: (snap: HandoffHistorySnapshot) => void;
 };
 
 const initialState: CognitiveModel = {
@@ -60,6 +66,20 @@ export const usePromptStore = create<PromptStore>()(
             setField: (field, value) =>
                 set((state) => ({ ...state, [field]: value })),
             reset: () => set(initialState),
+            applyHistorySnapshot: (snap) =>
+                set((state) => ({
+                    ...state,
+                    naturalPrompt: snap.naturalPrompt,
+                    intentLock: snap.intentLock,
+                    realityAnchor: snap.realityAnchor,
+                    constraintCage: snap.constraintCage,
+                    actionSlice: snap.actionSlice,
+                    responseContract: snap.responseContract,
+                    llmProvider: snap.llmProvider,
+                    deepPlan: snap.deepPlan,
+                    orchestrationTokenTotal: snap.orchestrationTokenTotal,
+                    cursorAgentModel: snap.cursorAgentModel,
+                })),
         }),
         {
             name: "preprompt-storage", // Key in localStorage
@@ -119,7 +139,7 @@ export function compileToPrompt(
         | "cursorAgentModel"
     >
 ): string {
-    return [
+    const raw = [
         `Success criteria:\n${model.intentLock}`,
         `Ground (facts):\n${model.realityAnchor}`,
         `Hard rules:\n${model.constraintCage}`,
@@ -128,4 +148,5 @@ export function compileToPrompt(
     ]
         .filter((section) => section.split("\n")[1].trim() !== "")
         .join("\n\n");
+    return stripMarkdownBoldMarkers(raw);
 }

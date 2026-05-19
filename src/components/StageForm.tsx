@@ -4,22 +4,22 @@ import { Stage } from "@/components/StageNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    readGuidancePanelOpenFromCookie,
+    writeGuidancePanelOpenToCookie,
+} from "@/lib/guidancePanelCookie";
 import { Translation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { CheckIcon, ChevronDownIcon, LightbulbIcon, SparklesIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronDownIcon, LightbulbIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Props = {
     stage: Stage;
     value: string;
     isGenerating?: boolean;
     onChange: (value: string) => void;
-    onNext: () => void;
-    onPrev: () => void;
     onAutoStructure?: () => void;
     isFirst: boolean;
-    isLast: boolean;
-    totalStages: number;
     t: Translation;
 };
 
@@ -28,15 +28,17 @@ export function StageForm({
     value,
     isGenerating,
     onChange,
-    onNext,
-    onPrev,
     onAutoStructure,
     isFirst,
-    isLast,
-    totalStages,
     t
 }: Props) {
     const [guidancePanelOpen, setGuidancePanelOpen] = useState(true);
+    useEffect(() => {
+        queueMicrotask(() => {
+            const saved = readGuidancePanelOpenFromCookie();
+            if (saved !== null) setGuidancePanelOpen(saved);
+        });
+    }, []);
     const meta = t.stages[stage.key];
     const hasTips = Boolean(meta.tips?.length);
     const hasExamples = Boolean(meta.bad && meta.good);
@@ -59,32 +61,17 @@ export function StageForm({
     }
 
     return (
-        <div className="flex flex-col gap-6 min-h-full">
-            {/* Auto-Structure (first stage only) */}
-            {isFirst && onAutoStructure && (
-                <div className="flex justify-end">
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={onAutoStructure}
-                        disabled={isGenerating || !value.trim()}
-                        className="gap-2 shrink-0 border border-border bg-background hover:bg-muted"
-                    >
-                        {isGenerating ? (
-                            <span className="animate-pulse">{t.autoStructuring}</span>
-                        ) : (
-                            <span>{t.autoStructure}</span>
-                        )}
-                    </Button>
-                </div>
-            )}
-
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
             {/* Tips + bad/good examples (single collapsible) */}
             {hasGuidancePanel && (
                 <div className="rounded-md border border-border bg-muted/20 overflow-hidden text-left">
                     <button
                         type="button"
-                        onClick={() => setGuidancePanelOpen(!guidancePanelOpen)}
+                        onClick={() => {
+                            const next = !guidancePanelOpen;
+                            setGuidancePanelOpen(next);
+                            writeGuidancePanelOpenToCookie(next);
+                        }}
                         className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-muted/50 transition-colors"
                     >
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -142,9 +129,28 @@ export function StageForm({
                 </div>
             )}
 
+            {/* Auto-Structure (first stage only) */}
+            {isFirst && onAutoStructure && (
+                <div className="flex justify-end">
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={onAutoStructure}
+                        disabled={isGenerating || !value.trim()}
+                        className="gap-2 shrink-0 border border-border bg-background hover:bg-muted"
+                    >
+                        {isGenerating ? (
+                            <span className="animate-pulse">{t.autoStructuring}</span>
+                        ) : (
+                            <span>{t.autoStructure}</span>
+                        )}
+                    </Button>
+                </div>
+            )}
+
             {/* Input */}
-            <div className="flex flex-col gap-2 shrink-0">
-                <div className="flex items-center justify-between">
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+                <div className="flex shrink-0 items-center justify-between">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         {t.yourInput}
                     </label>
@@ -156,50 +162,12 @@ export function StageForm({
                     </div>
                 </div>
                 <Textarea
-                    className="h-[320px] resize-y font-mono text-sm p-4 bg-background/50 focus-visible:bg-background transition-colors leading-relaxed"
+                    className="field-sizing-fixed min-h-[200px] flex-1 resize-y font-mono text-sm p-4 bg-background/50 focus-visible:bg-background transition-colors leading-relaxed"
                     placeholder={meta.placeholder}
                     value={value}
                     disabled={isGenerating}
                     onChange={(e) => onChange(e.target.value)}
                 />
-            </div>
-
-            {/* Step navigation */}
-            <div className="flex items-center justify-between pt-2 border-t border-border shrink-0 mt-auto">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onPrev}
-                    disabled={isFirst || isGenerating}
-                >
-                    {t.previous}
-                </Button>
-                <div className="flex items-center gap-4">
-                    <span className="text-xs text-muted-foreground flex items-center">
-                        {t.stepOf(stage.id + 1, totalStages)}
-                    </span>
-                    {isLast ? (
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2">
-                                <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
-                                {t.readyInSidebar}
-                            </span>
-                            <Button
-                                size="sm"
-                                onClick={onNext}
-                                disabled={isGenerating}
-                                className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                            >
-                                <CheckIcon className="w-4 h-4" />
-                                {t.doneOpenPreview}
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button size="sm" onClick={onNext} disabled={isGenerating}>
-                            {t.next}
-                        </Button>
-                    )}
-                </div>
             </div>
         </div>
     );

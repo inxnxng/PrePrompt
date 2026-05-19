@@ -13,12 +13,25 @@ import {
 } from "@/components/ui/resizable";
 import { generateStructuredPrompt } from "@/lib/agent/generateStructuredPrompt";
 import { t } from "@/lib/i18n";
+import { consumePlaybookHomeNavigation } from "@/lib/playbook/playbookHomeSession";
 import { cn } from "@/lib/utils";
 import { CognitiveModel, compileToPrompt, usePromptStore } from "@/store/usePromptStore";
-import { CompassIcon, PackageIcon, PanelLeftCloseIcon, PanelLeftIcon, SaveIcon } from "lucide-react";
+import {
+  CheckIcon,
+  CompassIcon,
+  HistoryIcon,
+  PackageIcon,
+  PanelLeftCloseIcon,
+  PanelLeftIcon,
+  PanelRightCloseIcon,
+  PanelRightOpenIcon,
+  SaveIcon,
+  SparklesIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePanelRef } from "react-resizable-panels";
 
 const PREPROMPT_UI_SESSION_KEY = "preprompt-ui-session";
 
@@ -27,6 +40,15 @@ export default function HomePage() {
   const [currentStageId, setCurrentStageId] = useState(0);
   const [completedStages, setCompletedStages] = useState<Set<number>>(new Set());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [previewPanelCollapsed, setPreviewPanelCollapsed] = useState(false);
+  const previewPanelRef = usePanelRef();
+
+  const syncPreviewPanelCollapsed = () => {
+    queueMicrotask(() => {
+      setPreviewPanelCollapsed(previewPanelRef.current?.isCollapsed() ?? false);
+    });
+  };
+
   const [appAlertOpen, setAppAlertOpen] = useState(false);
   const [appAlertTitle, setAppAlertTitle] = useState("");
   const [appAlertMessage, setAppAlertMessage] = useState("");
@@ -91,6 +113,11 @@ export default function HomePage() {
     responseContract,
   ]);
 
+  const allStagesFilled = useMemo(
+    () => STAGES.every((s) => stagesWithContent.has(s.id)),
+    [stagesWithContent]
+  );
+
   const hasHandoffResult = useMemo(
     () =>
       compileToPrompt({
@@ -138,6 +165,19 @@ export default function HomePage() {
       setUiHydrated(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (!uiHydrated) return;
+    if (!consumePlaybookHomeNavigation()) return;
+    queueMicrotask(() => {
+      setCurrentStageId(0);
+      setCompletedStages(new Set([0]));
+      const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+      setDraftFeedback(`${t.playbookDraftLoadedFeedback} · ${time}`);
+      if (draftFeedbackClearRef.current) clearTimeout(draftFeedbackClearRef.current);
+      draftFeedbackClearRef.current = setTimeout(() => setDraftFeedback(null), 6500);
+    });
+  }, [uiHydrated]);
 
   useEffect(() => {
     if (!uiHydrated) return;
@@ -321,6 +361,12 @@ export default function HomePage() {
               {sidebarCollapsed ? null : <span className="truncate">{t.navPlaybook}</span>}
             </Link>
           </Button>
+          <Button variant="ghost" size={sidebarCollapsed ? "icon" : "sm"} className={sidebarFooterBtnClass} asChild>
+            <Link href="/history" aria-label={t.navHistory}>
+              <HistoryIcon className="h-4 w-4" />
+              {sidebarCollapsed ? null : <span className="truncate">{t.navHistory}</span>}
+            </Link>
+          </Button>
           {hasHandoffResult ? (
             <Button variant="ghost" size={sidebarCollapsed ? "icon" : "sm"} className={sidebarFooterBtnClass} asChild>
               <Link href="/result" aria-label={t.navResult}>
@@ -350,7 +396,11 @@ export default function HomePage() {
         </div>
       </aside>
 
-      <ResizablePanelGroup orientation="horizontal" className="flex-1">
+      <ResizablePanelGroup
+        orientation="horizontal"
+        className="flex-1"
+        onLayoutChanged={syncPreviewPanelCollapsed}
+      >
         <ResizablePanel defaultSize="65%" minSize="30%" className="flex flex-col">
           {/* Center — Input Form Area */}
           <main className="relative flex h-full min-h-0 flex-col overflow-hidden">
@@ -387,7 +437,7 @@ export default function HomePage() {
                 ) : null}
               </header>
             </div>
-            <section className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+            <section className="flex min-h-0 flex-1 flex-col overflow-y-auto px-8 py-6 pb-4">
               <StageForm
                 stage={currentStage}
                 value={model[currentStage.key as keyof CognitiveModel] as string}
@@ -395,35 +445,123 @@ export default function HomePage() {
                 onChange={(val) =>
                   store.setField(currentStage.key as keyof CognitiveModel, val)
                 }
-                onNext={handleNext}
-                onPrev={handlePrev}
                 onAutoStructure={handleAutoStructure}
                 isFirst={isFirst}
-                isLast={isLast}
-                totalStages={STAGES.length}
                 t={t}
               />
             </section>
+            <footer
+              className={cn(
+                "shrink-0 border-t border-border px-8 py-3",
+                "bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/85"
+              )}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrev}
+                  disabled={isFirst || model.isGenerating}
+                >
+                  {t.previous}
+                </Button>
+                <div className="flex min-w-0 flex-1 items-center justify-end gap-4">
+                  <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                    {t.stepOf(currentIndex + 1, STAGES.length)}
+                  </span>
+                  {isLast ? (
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2">
+                        <SparklesIcon className="h-3.5 w-3.5 text-amber-500" aria-hidden />
+                        {t.readyInSidebar}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleNext}
+                        disabled={model.isGenerating || !allStagesFilled}
+                        title={!allStagesFilled && !model.isGenerating ? t.fillStages : undefined}
+                        className="shrink-0 gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700"
+                      >
+                        <CheckIcon className="h-4 w-4 shrink-0" aria-hidden />
+                        {t.doneOpenPreview}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button type="button" size="sm" onClick={handleNext} disabled={model.isGenerating}>
+                      {t.next}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </footer>
           </main>
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize="35%" minSize="35%" className="flex flex-col border-l border-border bg-background">
+        <ResizablePanel
+          defaultSize="35%"
+          minSize="18%"
+          collapsedSize="3.5rem"
+          collapsible
+          panelRef={previewPanelRef}
+          className="flex flex-col border-l border-border bg-background min-h-0 min-w-0"
+        >
           {/* Right — Preview Panel */}
           <aside
             id="preprompt-preview-panel"
-            className="flex flex-1 flex-col min-h-0 transition-shadow duration-300 rounded-sm"
+            className="flex flex-1 flex-col min-h-0 overflow-hidden transition-shadow duration-300 rounded-sm"
           >
-            <div className="shrink-0 border-b border-border bg-muted/20 px-4 py-3">
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold tracking-tight text-foreground">{t.promptPreview}</h2>
-                <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{t.promptPreviewSubtitle}</p>
+            {previewPanelCollapsed ? (
+              <div
+                className={cn(
+                  "border-b border-border/80 shrink-0 bg-muted/20",
+                  "flex flex-col items-center gap-2.5 px-1.5 py-3"
+                )}
+              >
+                <span className="text-[10px] font-semibold tracking-tight text-muted-foreground select-none">
+                  미리
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => previewPanelRef.current?.expand()}
+                  aria-expanded={false}
+                  aria-label={t.expandPromptPreview}
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <PanelRightOpenIcon className="h-4 w-4" />
+                </Button>
               </div>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <PromptPreview model={model} t={t} />
-            </div>
+            ) : (
+              <>
+                <div className="shrink-0 border-b border-border bg-muted/20 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-sm font-semibold tracking-tight text-foreground">{t.promptPreview}</h2>
+                      <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{t.promptPreviewSubtitle}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => previewPanelRef.current?.collapse()}
+                      aria-expanded
+                      aria-label={t.minimizePromptPreview}
+                      className="h-8 w-8 shrink-0 -mr-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      <PanelRightCloseIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <PromptPreview model={model} t={t} />
+                </div>
+              </>
+            )}
           </aside>
         </ResizablePanel>
       </ResizablePanelGroup>

@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CURSOR_AGENT_MODELS_CATALOG_TTL_MS } from "@/lib/cursorAgentModelsCatalog";
 import { Translation } from "@/lib/i18n";
-import type { CatalogModel } from "@/lib/modelRecommendationsFromCatalog";
+import type { CatalogModel, ModelCardRationaleKo, ModelRecommendationContext } from "@/lib/modelRecommendationsFromCatalog";
 import {
     analyzeImplementationProfile,
-    buildPerformanceRationaleKo,
-    buildValueRationaleKo,
+    buildModelRequestHintKo,
+    buildPerformanceCardRationaleKo,
+    buildValueCardRationaleKo,
     recommendModelsForImplementation,
 } from "@/lib/modelRecommendationsFromCatalog";
 import { CpuIcon, RefreshCwIcon, WalletIcon } from "lucide-react";
@@ -49,11 +50,51 @@ function writeClientCursorModelsCache(models: CatalogModel[]): void {
 
 type Props = {
     compiledPrompt: string;
+    /** Step 0 draft; used to quote “this request” in model rationale. */
+    naturalPrompt: string;
     t: Translation;
 };
 
-export function ModelRecommendationsPanel({ compiledPrompt, t }: Props) {
+function ModelCardRationale({ rationale }: { rationale: ModelCardRationaleKo }) {
+    return (
+        <div className="mt-3 space-y-3 text-xs leading-relaxed text-muted-foreground">
+            <div className="space-y-1.5">
+                {rationale.lead.map((line, i) => (
+                    <p key={i}>{line}</p>
+                ))}
+            </div>
+            {rationale.pros.length > 0 ? (
+                <div>
+                    <p className="mb-1 font-medium text-foreground/85">장점</p>
+                    <ul className="list-disc space-y-1 pl-4 marker:text-muted-foreground/70">
+                        {rationale.pros.map((line, i) => (
+                            <li key={i}>{line}</li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+            {rationale.cons.length > 0 ? (
+                <div>
+                    <p className="mb-1 font-medium text-foreground/85">단점</p>
+                    <ul className="list-disc space-y-1 pl-4 marker:text-muted-foreground/70">
+                        {rationale.cons.map((line, i) => (
+                            <li key={i}>{line}</li>
+                        ))}
+                    </ul>
+                </div>
+            ) : null}
+            <p className="text-[11px] leading-relaxed text-muted-foreground/90">{rationale.footnote}</p>
+        </div>
+    );
+}
+
+export function ModelRecommendationsPanel({ compiledPrompt, naturalPrompt, t }: Props) {
     const profile = useMemo(() => analyzeImplementationProfile(compiledPrompt), [compiledPrompt]);
+
+    const recommendationCtx = useMemo((): ModelRecommendationContext => {
+        const requestHint = buildModelRequestHintKo(compiledPrompt, naturalPrompt);
+        return requestHint.trim() ? { requestHint } : {};
+    }, [compiledPrompt, naturalPrompt]);
 
     const [models, setModels] = useState<CatalogModel[]>([]);
     const [loading, setLoading] = useState(true);
@@ -106,11 +147,13 @@ export function ModelRecommendationsPanel({ compiledPrompt, t }: Props) {
     }, [t.cursorAgentModelsError]);
 
     useEffect(() => {
-        if (!profile) {
-            setLoading(false);
-            return;
-        }
-        void fetchModels(false);
+        queueMicrotask(() => {
+            if (!profile) {
+                setLoading(false);
+                return;
+            }
+            void fetchModels(false);
+        });
     }, [fetchModels, profile]);
 
     const picks = useMemo(() => {
@@ -167,9 +210,9 @@ export function ModelRecommendationsPanel({ compiledPrompt, t }: Props) {
                                 </div>
                                 <p className="font-mono text-xs text-foreground/90">{picks.performance.id}</p>
                                 <p className="mt-1 text-sm text-foreground">{picks.performance.label}</p>
-                                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                                    {buildPerformanceRationaleKo(picks.performance, profile)}
-                                </p>
+                                <ModelCardRationale
+                                    rationale={buildPerformanceCardRationaleKo(picks.performance, profile, recommendationCtx)}
+                                />
                             </div>
                             <div className="rounded-xl border border-border/80 bg-card/80 p-4 shadow-xs">
                                 <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
@@ -178,9 +221,9 @@ export function ModelRecommendationsPanel({ compiledPrompt, t }: Props) {
                                 </div>
                                 <p className="font-mono text-xs text-foreground/90">{picks.value.id}</p>
                                 <p className="mt-1 text-sm text-foreground">{picks.value.label}</p>
-                                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                                    {buildValueRationaleKo(picks.value, profile)}
-                                </p>
+                                <ModelCardRationale
+                                    rationale={buildValueCardRationaleKo(picks.value, profile, recommendationCtx)}
+                                />
                             </div>
                         </div>
                     </>

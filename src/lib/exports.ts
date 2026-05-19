@@ -14,6 +14,7 @@ import {
     archetypeSpecAddendum,
     type HandoffArchetypeId,
 } from "@/lib/handoffArchetypes";
+import { stripMarkdownBoldMarkers } from "@/lib/stripMarkdownBoldMarkers";
 import { type CognitiveModel, compileToPrompt } from "@/store/usePromptStore";
 import { strToU8, zipSync } from "fflate";
 
@@ -89,7 +90,7 @@ export function buildTaskPayload(model: CognitiveModel, handoffArchetype: Handof
         implementationBlueprint: model.deepPlan?.implementationBlueprint ?? null,
         compiledPrompt: compileToPrompt(model),
         orchestrationTokenTotal: model.orchestrationTokenTotal,
-        naturalPrompt: model.naturalPrompt,
+        naturalPrompt: stripMarkdownBoldMarkers(model.naturalPrompt),
     };
 }
 
@@ -115,9 +116,9 @@ export function buildSpecMarkdown(model: CognitiveModel, handoffArchetype: Hando
         ].join("\n");
     }
     if (handoffArchetype) {
-        return `${body.trimEnd()}\n\n${archetypeSpecAddendum(handoffArchetype)}\n`;
+        return stripMarkdownBoldMarkers(`${body.trimEnd()}\n\n${archetypeSpecAddendum(handoffArchetype)}\n`);
     }
-    return body;
+    return stripMarkdownBoldMarkers(body);
 }
 
 /** Shared harness body (tool-agnostic contract + embedded compiled prompt). */
@@ -138,12 +139,13 @@ function handoffHarnessKernel(model: CognitiveModel, handoffArchetype: HandoffAr
         "",
     ].join("\n");
     if (handoffArchetype) {
-        return `${base.trimEnd()}\n\n${archetypeHarnessAddendum(handoffArchetype)}\n`;
+        return stripMarkdownBoldMarkers(`${base.trimEnd()}\n\n${archetypeHarnessAddendum(handoffArchetype)}\n`);
     }
-    return base;
+    return stripMarkdownBoldMarkers(base);
 }
 
 export function buildCursorRulesMarkdown(model: CognitiveModel, handoffArchetype: HandoffArchetypeId | null): string {
+    const kernel = handoffHarnessKernel(model, handoffArchetype);
     return [
         "---",
         "description: PrePrompt-generated harness (merge into .cursor/rules as needed)",
@@ -151,7 +153,7 @@ export function buildCursorRulesMarkdown(model: CognitiveModel, handoffArchetype
         "  - \"**/*\"",
         "---",
         "",
-        handoffHarnessKernel(model, handoffArchetype),
+        kernel,
     ].join("\n");
 }
 
@@ -228,14 +230,14 @@ export function buildAgentsMarkdownSnippet(model: CognitiveModel, handoffArchety
         "",
     ].join("\n");
     if (handoffArchetype) {
-        return `${base.trimEnd()}\n\n${archetypeAgentsAddendum(handoffArchetype)}\n`;
+        return stripMarkdownBoldMarkers(`${base.trimEnd()}\n\n${archetypeAgentsAddendum(handoffArchetype)}\n`);
     }
-    return base;
+    return stripMarkdownBoldMarkers(base);
 }
 
 export function buildChatOneLiner(_model: CognitiveModel, handoffArchetype: HandoffArchetypeId | null): string {
     if (handoffArchetype) {
-        return archetypeChatKickoff(handoffArchetype);
+        return stripMarkdownBoldMarkers(archetypeChatKickoff(handoffArchetype));
     }
     return "SPEC.md와 preprompt.task.json을 먼저 읽고, 그 범위와 가정만으로 구현하세요. 완료 후 definition_of_done을 검증하세요.";
 }

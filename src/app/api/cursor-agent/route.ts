@@ -1,3 +1,4 @@
+import { logCursorAgentQa } from "@/lib/server/agentQaLog";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "node:child_process";
 
@@ -185,6 +186,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     if (result.timedOut) {
+        logCursorAgentQa({
+            model: model || undefined,
+            question: prompt,
+            answer: `[TIMEOUT after ${Math.round(TIMEOUT_MS / 1000)}s]\n--- stderr ---\n${result.stderr}\n--- stdout (head) ---\n${result.output.slice(0, 12_000)}`,
+            stderr: result.stderr,
+        });
         return NextResponse.json(
             {
                 error: `cursor-agent timed out after ${Math.round(TIMEOUT_MS / 1000)}s`,
@@ -196,6 +203,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     if (result.exitCode !== 0) {
+        logCursorAgentQa({
+            model: model || undefined,
+            question: prompt,
+            answer: `[NON-ZERO EXIT ${result.exitCode}]\n--- stderr ---\n${result.stderr}\n--- stdout (head) ---\n${result.output.slice(0, 12_000)}`,
+            stderr: result.stderr,
+        });
         return NextResponse.json(
             {
                 error: result.stderr.trim() || `cursor-agent exited with code ${result.exitCode}`,
@@ -206,6 +219,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             { status: 502 }
         );
     }
+
+    logCursorAgentQa({
+        model: model || undefined,
+        question: prompt,
+        answer: result.output,
+        stderr: result.stderr.trim() || null,
+    });
 
     return NextResponse.json({
         output: result.output,

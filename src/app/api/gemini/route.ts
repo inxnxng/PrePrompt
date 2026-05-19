@@ -1,3 +1,4 @@
+import { logGeminiAgentQa } from "@/lib/server/agentQaLog";
 import { NextRequest, NextResponse } from "next/server";
 
 const WINDOW_MS = 60_000;
@@ -77,6 +78,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         try {
             json = JSON.parse(lastText);
         } catch {
+            logGeminiAgentQa({
+                model,
+                googleBody,
+                responseJson: {
+                    code: "UPSTREAM_PARSE",
+                    snippet: lastText.slice(0, 4000),
+                },
+            });
             return NextResponse.json(
                 { error: "Upstream returned non-JSON", code: "UPSTREAM_PARSE", snippet: lastText.slice(0, 400) },
                 { status: 502 }
@@ -88,6 +97,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 typeof (json as { error?: { message?: string } })?.error?.message === "string"
                     ? (json as { error: { message: string } }).error.message
                     : lastText.slice(0, 400);
+            logGeminiAgentQa({
+                model,
+                googleBody,
+                responseJson: { httpStatus: res.status, message: msg, upstream: json },
+            });
             return NextResponse.json(
                 {
                     error: msg,
@@ -99,6 +113,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             );
         }
 
+        logGeminiAgentQa({ model, googleBody, responseJson: json });
         return NextResponse.json(json);
     }
 
@@ -108,6 +123,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     } catch {
         /* keep text slice */
     }
+    logGeminiAgentQa({
+        model,
+        googleBody,
+        responseJson: {
+            code: "UPSTREAM_RETRY",
+            httpStatus: lastStatus,
+            upstream: retryBody,
+        },
+    });
     return NextResponse.json(
         {
             error: lastText.slice(0, 400) || "Upstream unavailable after retries",

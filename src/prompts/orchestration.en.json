@@ -33,26 +33,26 @@
       "intentLock: observable completion / success checks only; no repo paths or versions.",
       "realityAnchor: current facts and assumptions (stack, paths, what exists); weave in technicalApproach.languages/frameworks/runtimes/persistence from the deep plan when applicable; no prescriptive \"should\".",
       "constraintCage: hard MUST/MUST NOT (architecture, deps, security); not reply formatting.",
-      "actionSlice: this handoff only—in scope vs explicitly deferred; end with a single scope-freeze line if helpful.",
+      "actionSlice: in scope vs explicitly deferred for this request only; end with a single scope-freeze line if helpful. Do not open the value with a title line that restates the slot (no Korean lines like '범위 (이번 핸드오프)', no English 'Handoff scope' as a standalone heading, no internal field key names). Start with the first substantive bullet or sentence.",
       "responseContract: IMPLEMENTATION CONTRACT (same intent as the field name in code — legacy key). Imperative execution checklist for whoever implements the work: numbered steps, tie-ins to implementationBlueprint paths/APIs, and how to verify. FORBIDDEN here: prescribing chat reply shape (no \"respond in JSON\", no markdown section templates, no word-count limits, no \"your answer should include…\"). If implementationBlueprint is populated, align this field to it without pointless duplication."
     ],
     "closing": "Keys listed above are exhaustive; values are prose for implementers. Apply the cross-field tradeoff rationale when relevant."
   },
   "agent": {
     "rolePreamble": "You are filling ONE slot of a PrePrompt handoff for software/engineering work. Other slots are filled separately; do not output other sections. Do not invoke filesystem, shell, or networking tools — output only the prose body for this slot.",
-    "plainOutputRules": "Output only this slot's body; follow Global Constraints for plain-text slots. No ** markdown; no emoji or emoticons. If this slot reflects a non-obvious tradeoff, end with one sentence tied to facts or success criteria explaining why this formulation over a plausible alternative.",
+    "plainOutputRules": "Output only this slot's body; follow Global Constraints for plain-text slots. No ** markdown; no emoji or emoticons. Never begin with a heading that only restates the assignment (e.g. scope/handoff labels in any language, markdown # headings, or the internal field key). Start with the first substantive bullet or sentence. If this slot reflects a non-obvious tradeoff, end with one sentence tied to facts or success criteria explaining why this formulation over a plausible alternative.",
     "fieldSpec": {
       "intentLock": "Field: success criteria. Observable completion checks only; no repo paths or versions unless they are part of a pass/fail check.",
       "realityAnchor": "Field: ground truth. Facts and assumptions about the current system (stack, paths, what exists); no prescriptive 'should'.",
       "constraintCage": "Field: hard rules. MUST/MUST NOT for architecture, deps, security, licensing; not reply formatting.",
-      "actionSlice": "Field: handoff scope. In scope vs explicitly deferred for this single handoff; optional closing scope-freeze line.",
+      "actionSlice": "Field: what is in vs explicitly out for this single request. Optional closing scope-freeze line. No leading title that repeats scope/handoff wording — begin with in-scope and deferred bullets or sentences.",
       "responseContract": "Field: implementation contract (stored as responseContract). Numbered execution steps, file/API pointers, verification — for a human or LLM doing the work. Forbidden: chat reply formatting, JSON answer shape, word limits."
     },
     "fieldTaskLabel": {
       "intentLock": "Success criteria (intentLock)",
       "realityAnchor": "Ground truth (realityAnchor)",
       "constraintCage": "Hard rules (constraintCage)",
-      "actionSlice": "Handoff scope (actionSlice)",
+      "actionSlice": "In scope vs explicitly deferred (actionSlice)",
       "responseContract": "Implementation contract (responseContract)"
     }
   },

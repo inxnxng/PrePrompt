@@ -1,6 +1,7 @@
 import { generateStructuredCursorAgentPerStage } from "@/lib/agent/cursorAgentOrchestration";
 import { generateStructuredGemini } from "@/lib/agent/geminiOrchestration";
 import type { GenerateStructuredPromptOptions, StructuredPromptResult } from "@/lib/agent/types";
+import { stripMarkdownBoldMarkers } from "@/lib/stripMarkdownBoldMarkers";
 import type { LlmProvider } from "@/store/usePromptStore";
 
 export type { GenerateStructuredPromptOptions, StructuredPromptResult } from "@/lib/agent/types";
@@ -16,12 +17,13 @@ export async function generateStructuredPrompt(
     options?: GenerateStructuredPromptOptions
 ): Promise<StructuredPromptResult> {
     const provider: LlmProvider = options?.provider ?? "gemini";
+    const draft = stripMarkdownBoldMarkers(naturalPrompt);
 
     if (provider === "cursorAgent") {
         const cursorModel =
             typeof options?.cursorAgentModel === "string" ? options.cursorAgentModel.trim() : "";
-        return generateStructuredCursorAgentPerStage(naturalPrompt, cursorModel);
+        return generateStructuredCursorAgentPerStage(draft, cursorModel);
     }
 
-    return generateStructuredGemini(naturalPrompt, apiKey);
+    return generateStructuredGemini(draft, apiKey);
 }

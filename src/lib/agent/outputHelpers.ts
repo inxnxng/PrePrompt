@@ -34,3 +34,38 @@ export function sanitizePlainStageOutput(s: string): string {
     }
     return sanitizeLlmOutputText(t.trim());
 }
+
+/** Strip a lone first-line title models echo (UI already labels this slot). */
+function stripMarkdownHeadingPrefix(line: string): string {
+    return line.replace(/^#{1,6}\s+/, "").trim();
+}
+
+function isActionSliceMetaTitleLine(line: string): boolean {
+    const x = stripMarkdownHeadingPrefix(line);
+    if (x.length === 0 || x.length > 140) return false;
+    // Avoid stripping real sentences (rough heuristic).
+    if (/[.!?…]/.test(x) && x.length > 40) return false;
+
+    const patterns: RegExp[] = [
+        /^범위\s*[\(（]\s*이번\s*(?:핸드오프|전달)\s*[\)）]\s*$/i,
+        /^[\(（]\s*이번\s*(?:핸드오프|전달)\s*[\)）]\s*범위\s*$/i,
+        /^이번\s*(?:핸드오프|전달)\s*범위\s*$/i,
+        /^핸드오프\s*범위\s*$/i,
+        /^이번\s*작업\s*범위\s*$/i,
+        /^handoff\s*scope\s*$/i,
+        /^scope\s*\(\s*this\s*handoff\s*\)\s*$/i,
+    ];
+    return patterns.some((re) => re.test(x));
+}
+
+/** Models often prefix actionSlice with a redundant heading; remove one matching line at the top. */
+export function stripActionSliceEchoHeading(s: string): string {
+    const t = s.trim();
+    if (!t) return t;
+    const lines = t.split(/\r?\n/);
+    let i = 0;
+    while (i < lines.length && lines[i].trim() === "") i++;
+    if (i >= lines.length) return t;
+    if (!isActionSliceMetaTitleLine(lines[i])) return t;
+    return lines.slice(i + 1).join("\n").trim();
+}

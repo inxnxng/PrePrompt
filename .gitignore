@@ -48,6 +48,9 @@ bench/
 
 .agents
 
+# local shared handoff history (server file store)
+/.data/
+
 # IDE
 .idea
 .vscode

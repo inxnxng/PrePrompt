@@ -1,4 +1,5 @@
 import { HARNESS_GUIDE_STEPS, collectUserTags } from "@/lib/harnessGuideContent";
+import { stripMarkdownBoldMarkers } from "@/lib/stripMarkdownBoldMarkers";
 import type { LlmProvider } from "@/store/usePromptStore";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
@@ -51,16 +52,15 @@ function cursorAgentUpstreamMessage(upstream: unknown): string | null {
 
 function buildSystemInstruction(): string {
   return [
-    "당신은 소프트웨어 엔지니어가 실제로 브라우저에서 열 수 있는 공개 HTTPS 사이트를 찾도록 돕는 조력자입니다.",
-    "주제: 구조화된 LLM 전달(handoff), 프롬프트·토큰 예산, 에이전트 하네스, Cursor/IDE 규칙, SPEC·문서화 등.",
-    "사용자가 고른 채널·주제(예: IDE, 팀 채팅, 티켓, 고객 대면, 위키, 실시간 회의)에 맞춰, 그 맥락에서 실무에 통하는 공식 문서·가이드를 우선 추천하세요.",
+    "공개 HTTPS 참고 사이트를 5~8개 제안하는 조력자입니다.",
+    "주제: LLM 전달·프롬프트·토큰·에이전트 하네스·IDE 규칙·SPEC 등.",
+    "사용자가 고른 채널·맥락에 맞춰 공식 문서·가이드를 우선합니다.",
     "",
     "규칙:",
-    "- 한국어로만 답합니다.",
-    "- **확실하거나 공식 루트에 가까운 URL만** 제안합니다. 존재를 장담할 수 없는 깊은 경로는 넣지 마세요.",
-    "- 5~8개 항목. 각 항목: 제목 한 줄, 다음 줄에 전체 URL(https://…), 다음 줄에 이 독자 프로필에 맞는 이유 한 문장.",
-    "- URL을 지어내지 마세요. 웹 검색 도구가 없다면 학습 데이터에 있는 유명 공식 문서·가이드 위주로 제한하세요.",
-    "- 로그인 필수만 있는 서비스를 유일한 추천으로 두지 마세요.",
+    "- 한국어만.",
+    "- 공식에 가까운 URL만. 깊은 경로·지어낸 URL 금지.",
+    "- 항목마다: 제목 한 줄, URL 한 줄(https://), 이 독자에게 맞는 이유 한 문장.",
+    "- 로그인 전용만 추천하지 않음.",
   ].join("\n");
 }
 
@@ -76,17 +76,18 @@ function buildUserContent(picked: (string | null)[]): string {
   }
   const ids = picked.filter((x): x is string => typeof x === "string" && x.length > 0);
   const tags = collectUserTags(ids);
-  const head =
-    "아래는 사용자가 플레이북에서 고른 값입니다. 첫 줄 근처의 채널·주제를 특히 반영해, 그 맥락에 맞는 참고 사이트를 제안하세요.";
+  const head = "플레이북 선택값입니다. 채널·맥락을 반영해 참고 사이트를 제안하세요.";
 
-  return [
-    head,
-    "",
-    lines.join("\n"),
-    "",
-    "내부 태그 (참고):",
-    tags.length ? tags.join(", ") : "(없음)",
-  ].join("\n");
+  return stripMarkdownBoldMarkers(
+    [
+      head,
+      "",
+      lines.join("\n"),
+      "",
+      "태그:",
+      tags.length ? tags.join(", ") : "(없음)",
+    ].join("\n")
+  );
 }
 
 async function postGeminiPlain(systemInstruction: string, userText: string, apiKey: string): Promise<string> {

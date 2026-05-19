@@ -1,4 +1,4 @@
-import { normalizeStructuredStringField } from "@/lib/agent/outputHelpers";
+import { normalizeStructuredStringField, stripActionSliceEchoHeading } from "@/lib/agent/outputHelpers";
 import type { StructuredPromptResult } from "@/lib/agent/types";
 import { normalizeDeepPlan } from "@/lib/deepPlan";
 import { t } from "@/lib/i18n";
@@ -131,7 +131,9 @@ function mergeStructuredFromDeepPlanAndFiveFieldsJson(
         intentLock: sanitizeLlmOutputText(normalizeStructuredStringField(parsed.intentLock)),
         realityAnchor: sanitizeLlmOutputText(normalizeStructuredStringField(parsed.realityAnchor)),
         constraintCage: sanitizeLlmOutputText(normalizeStructuredStringField(parsed.constraintCage)),
-        actionSlice: sanitizeLlmOutputText(normalizeStructuredStringField(parsed.actionSlice)),
+        actionSlice: stripActionSliceEchoHeading(
+            sanitizeLlmOutputText(normalizeStructuredStringField(parsed.actionSlice))
+        ),
         responseContract: sanitizeLlmOutputText(normalizeStructuredStringField(parsed.responseContract)),
         deepPlan,
         orchestrationTokenTotal,

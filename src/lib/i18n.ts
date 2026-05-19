@@ -18,12 +18,59 @@ export type Translation = {
   resetConfirmBody: string;
   minimizeSidebar: string;
   expandSidebar: string;
+  /** Right prompt preview panel — collapse to narrow strip (like left sidebar) */
+  minimizePromptPreview: string;
+  expandPromptPreview: string;
   /** Left sidebar footer — short heading above playbook/settings */
   sidebarLinksLabel: string;
   /** Nav label for /playbook (harness tradeoff playbook) */
   navPlaybook: string;
   /** Nav label for /result (ZIP + model picks) */
   navResult: string;
+  /** Nav label for /history (shared saved handoffs) */
+  navHistory: string;
+  /** /history — shared handoff dashboard */
+  historyPageTitle: string;
+  historyPageSubtitle: string;
+  historyServerNote: string;
+  historyRefresh: string;
+  historyFilterAll: string;
+  historyFilterMine: string;
+  historyEmpty: string;
+  historyLoadError: string;
+  historyTableTitle: string;
+  historyTableAuthor: string;
+  historyTableWhen: string;
+  historyTableDownloads: string;
+  historyActions: string;
+  historyLoadButton: string;
+  historyZipButton: string;
+  historyDisplayNameBanner: string;
+  historySetNameHint: string;
+  historySaveDialogTitle: string;
+  historySaveDialogDesc: string;
+  historyAuthorLabel: string;
+  historyAuthorPlaceholder: string;
+  historyAuthorHint: string;
+  historyTitleLabel: string;
+  historyTitlePlaceholder: string;
+  historySaveSubmit: string;
+  historySaving: string;
+  historySaveAuthorRequired: string;
+  historySaveError: string;
+  historySaveToServer: string;
+  historyBackResult: string;
+  historyBackHome: string;
+  historyPanelTitle: string;
+  historyPanelDesc: string;
+  /** /history — board hint under filters */
+  historyBoardHint: string;
+  /** /history — mini popup title */
+  historyDetailTitle: string;
+  /** /history — natural prompt snippet in popup */
+  historyDraftPreviewLabel: string;
+  /** /history — when natural prompt empty in popup */
+  historyDraftPreviewEmpty: string;
   /** /result — page title */
   resultPageTitle: string;
   resultPageSubtitle: string;
@@ -57,6 +104,8 @@ export type Translation = {
   doneOpenPreview: string;
   /** Failed to write UI session /** draft key */
   draftSaveFailed: string;
+  /** One-shot after playbook filled step-0 draft */
+  playbookDraftLoadedFeedback: string;
   readyInSidebar: string;
   stepOf: (current: number, total: number) => string;
   autoStructure: string;
@@ -64,6 +113,8 @@ export type Translation = {
   //** Settings modal
   settingsTitle: string;
   settingsDesc: string;
+  /** Settings modal — body when LLM backend is Cursor Agent (no Gemini key / proxy copy) */
+  settingsDescCursorAgent: string;
   settingsSecurity: string;
   geminiApiKey: string;
   geminiApiKeyPlaceholder: string;
@@ -188,10 +239,54 @@ export const t: Translation = {
     "각 칸에 적은 내용과 단계 진행이 모두 사라집니다. 설정에 저장한 API 키는 유지됩니다.",
   minimizeSidebar: "사이드바 접기",
   expandSidebar: "사이드바 펼치기",
+  minimizePromptPreview: "프롬프트 미리보기 접기",
+  expandPromptPreview: "프롬프트 미리보기 펼치기",
   sidebarLinksLabel: "바로가기",
   navPlaybook: "하네스 플레이북",
-  navResult: "전달·결과",
-  resultPageTitle: "전달·결과",
+  navResult: "전달 결과",
+  navHistory: "히스토리",
+  historyPageTitle: "히스토리",
+  historyPageSubtitle:
+    "이 서버에 저장된 핸드오프 스냅샷입니다. 누가 언제 올렸는지·ZIP 다운로드 횟수를 볼 수 있고, 다른 사람의 전달물을 불러와 이어서 쓸 수 있습니다. API 키는 저장되지 않습니다.",
+  historyServerNote:
+    "데이터는 배포 서버의 `.data/handoff-history.json`에 쌓입니다. Vercel 같은 읽기 전용/다중 인스턴스 환경에서는 저장이 되지 않을 수 있으며, 그 경우 로컬에서 `npm run dev` 또는 단일 프로세스 `next start`로 쓰는 것을 권장합니다.",
+  historyRefresh: "새로고침",
+  historyFilterAll: "전체",
+  historyFilterMine: "내가 저장한 것",
+  historyEmpty: "아직 저장된 항목이 없습니다. 「전달 결과」에서 「서버에 저장」을 눌러 보세요.",
+  historyLoadError: "불러오지 못했습니다.",
+  historyTableTitle: "제목",
+  historyTableAuthor: "저장한 사람",
+  historyTableWhen: "저장 시각",
+  historyTableDownloads: "다운로드",
+  historyActions: "동작",
+  historyLoadButton: "에디터에 불러오기",
+  historyZipButton: "ZIP 받기",
+  historyDisplayNameBanner: "「내가 저장한 것」 필터에 쓸 표시 이름",
+  historySetNameHint: "아래에 적은 이름과 저장 기록의 이름이 같으면 내 항목으로 묶입니다.",
+  historySaveDialogTitle: "서버에 핸드오프 저장",
+  historySaveDialogDesc:
+    "다섯 칸·딥 플랜·백엔드 설정(키 제외)이 이 배포 인스턴스에 JSON으로 저장됩니다. 팀원이 같은 주소로 접속하면 목록에서 볼 수 있습니다.",
+  historyAuthorLabel: "표시 이름",
+  historyAuthorPlaceholder: "예: 김프롬프트",
+  historyAuthorHint: "같은 브라우저에 기억해 두었다가 다음 저장 때 다시 채웁니다.",
+  historyTitleLabel: "제목 (선택)",
+  historyTitlePlaceholder: "비우면 요청 초안 첫 줄로 제목을 만듭니다.",
+  historySaveSubmit: "저장",
+  historySaving: "저장 중…",
+  historySaveAuthorRequired: "표시 이름을 한 글자 이상 입력해 주세요.",
+  historySaveError: "저장에 실패했습니다. 서버 로그와 디스크 권한을 확인해 주세요.",
+  historySaveToServer: "서버에 저장",
+  historyBackResult: "전달 결과로",
+  historyBackHome: "작성 화면으로",
+  historyPanelTitle: "필터 · ZIP 전달 대상",
+  historyPanelDesc:
+    "「내가 저장한 것」은 표시 이름과 저장할 때 적은 이름이 같을 때만 골라 보여 줍니다. ZIP은 아래에서 고른 전달 대상으로 받습니다.",
+  historyBoardHint: "카드를 누르면 작은 창에서 미리보기와 동작을 선택할 수 있습니다.",
+  historyDetailTitle: "저장된 핸드오프",
+  historyDraftPreviewLabel: "요청 초안 미리보기",
+  historyDraftPreviewEmpty: "(요청 초안이 비어 있습니다)",
+  resultPageTitle: "전달 결과",
   resultPageSubtitle:
     "에이전트 전달 ZIP·첫 메시지 복사를 확인합니다. Cursor Agent 모델 추천은 합쳐진 하네스가 있을 때만, 그 내용을 구현할 때 기준으로 표시됩니다.",
   resultBackHome: "작성 화면으로",
@@ -208,7 +303,7 @@ export const t: Translation = {
   resultModelsHeuristicNote:
     "키워드·분량 기반 추정입니다. 팀 규율·CI·레거시 난이도는 합본에 없을 수 있으니, 실행 후 모델은 직접 조정하세요. 공식 요금·성능 지표가 아닙니다.",
   promptPreview: "프롬프트 미리보기",
-  promptPreviewSubtitle: "다섯 칸이 합쳐진 텍스트를 확인·복사합니다. ZIP과 모델 추천은 「전달·결과」에서 이어집니다.",
+  promptPreviewSubtitle: "다섯 칸이 합쳐진 텍스트를 확인·복사합니다. ZIP과 모델 추천은 「전달 결과」에서 이어집니다.",
   previewToolbarTitle: "구조화된 출력",
   previewToolbarHint:
     "다섯 칸이 합쳐진 한 덩어리 텍스트입니다. 그대로 복사해 쓰거나, 아래 전달 카드에서 ZIP으로 에이전트 작업공간에 넣을 수 있습니다.",
@@ -223,12 +318,16 @@ export const t: Translation = {
   draftSavedShort: "이 브라우저에 저장했습니다.",
   doneOpenPreview: "전달 결과 보러 가기",
   draftSaveFailed: "브라우저 저장소에 저장하지 못했습니다. 용량이 부족하거나 차단되었을 수 있습니다.",
+  playbookDraftLoadedFeedback:
+    "플레이북 초안을 넣었습니다. 「추가 보완:」 뒤를 채운 뒤 자동 구조화를 누르세요.",
   readyInSidebar: "아래 버튼으로 전달 화면으로 이동해 ZIP과 모델 추천을 확인하세요",
   stepOf: (c, t) => `${c} / ${t} 단계`,
   autoStructure: "✨ 자동 구조화",
   autoStructuring: "✨ 구조화 중...",
   settingsTitle: "설정",
   settingsDesc: "API 키 및 환경설정을 관리합니다.",
+  settingsDescCursorAgent:
+    "이 모드에서는 자동 구조화가 이 PC의 Cursor Agent(로컬 CLI)로 실행됩니다. Gemini API 키는 사용하지 않습니다.",
   settingsSecurity:
     "Gemini: API 키는 이 브라우저(로컬 스토리지)에만 두고, 자동 구조화 시에만 /api/gemini로 전달되며 앱이 저장하지 않습니다. 신뢰할 수 없다고 판단할 경우, 키 값을 넣지 마세요.",
   geminiApiKey: "Gemini API 키",
@@ -271,7 +370,7 @@ export const t: Translation = {
         "말로 동료에게 설명하듯 적어 보세요. 문장이 산만해도 됩니다.\n\n예시로 넣을 만한 것:\n- 하고 싶은 변경이나 새 기능 한 줄 요약\n- 왜 지금 필요한지\n- 이미 해 본 것, 막힌 에러나 의문\n\n다음 칸에서 확인 방법·사실·금지·이번에 할 일의 테두리·순서로 나눕니다. 여기서는 빠짐없이 적는 것이 목표입니다.",
       bad: "로그인 좀 해줘.",
       good:
-        "관리자 페이지에 로그인 붙이고 싶어요. 지금은 세션 없이 목업만 있고, Supabase 프로젝트는 만들어 둔 상태예요. 이메일 로그인만 필요하고 OAuth는 나중에 할게요. 막히는 건 App Router랑 미들웨어 조합이 처음이라 어디부터 손대야 할지 모르겠어요.",
+        "- 관리자 페이지에 로그인을 붙이고 싶어요.\n- 지금은 세션 없이 목업만 있고, Supabase 프로젝트는 만들어 둔 상태예요.\n- 이메일 로그인만 필요하고 OAuth는 나중에 할게요.\n- App Router와 미들웨어 조합이 처음이라 어디부터 손대야 할지 모르겠어요.",
       tips: [
         "'누가 읽나요?'를 한 명으로 정해 보세요. 그 사람이 레포를 처음 본다고 가정하고 말해 보세요.",
         "'다 됐다'고 말할 수 있는 장면을 하나만이라도 적어 두면, 다음 칸(완료 기준)으로 옮기기 쉽습니다.",
@@ -311,7 +410,7 @@ export const t: Translation = {
       description: "방식·스택·보안 — 양보 없는 규칙",
       placeholder:
         "어떻게 일할지에 대한 빨간선만 적습니다(새 패키지 금지, 특정 폴더만 수정 등).\n\n- 반드시 / 절대 금지 / 오직 ~만 같은 짧은 문장\n- 보안·라이선스·호환성 같이 지키지 않으면 안 되는 것\n\n'1번 파일 고치고 2번 API 부르고…' 같은 순서는 「작업 순서」 칸입니다.",
-      bad: "깔끔하고 유지보수 잘 되게.\n필요하면 라이브러리 추가해도 돼.",
+      bad: "깔끔하고 유지보수 잘 되게, 필요하면 라이브러리도 추가해 줘.",
       good:
         "- MUST: App Router만 사용. Pages Router 사용 금지.\n- MUST NOT: 새 npm 의존성 추가.\n- ONLY: 스타일은 Tailwind 유틸만(별도 .css 파일 추가 금지).\n- NEVER: prisma/schema.prisma 수정.\n- MUST NOT: 클래스 컴포넌트(함수 컴포넌트만).",
       tips: [
@@ -327,7 +426,7 @@ export const t: Translation = {
         "'전달'은 우편이 아니라 이번에 AI·동료에게 시키는 작업 묶음입니다.\n\n- 할 일: 이번에 반드시 나와야 하는 파일·기능·결과\n- 안 할 일: 이번에는 치우고 나중으로 미루는 것\n- 마지막 한 줄: '위에서 안 적은 건 이번 작업에 넣지 않는다'처럼 고정하면 범위가 덜 새요.",
       bad: "인증 관련된 거 다 해 줘.",
       good:
-        "이번 작업에 포함:\n- src/components/LoginForm.tsx — 필드, 유효성, 제출 버튼까지\n- 기존 POST /api/login과 연결(API는 이미 머지됐다고 가정)\n\n이번 작업에 넣지 않음:\n- 이메일 인증, 비밀번호 재설정, OAuth, 이메일 템플릿\n\n위 '넣지 않음' 항목은 이번 요청에서 하지 않는다.",
+        "- 이번 작업에 포함: src/components/LoginForm.tsx — 필드, 유효성, 제출 버튼까지.\n- 기존 POST /api/login과 연결(API는 이미 머지됐다고 가정).\n- 이번 작업에 넣지 않음: 이메일 인증, 비밀번호 재설정, OAuth, 이메일 템플릿.\n- 위 '넣지 않음' 항목은 이번 요청에서 하지 않는다.",
       tips: [
         "'다 됐다'의 정의는 완료 기준, '이번에 실제로 손댈 테두리'는 이번 작업 범위입니다.",
         "나중으로 미루는 일을 구체적으로 이름 붙이면, 같은 질문을 돌려받는 일이 줄어듭니다.",
@@ -341,7 +440,7 @@ export const t: Translation = {
         "이 문서만 보고도 무엇을 어떤 순서로 고치고, 끝나면 무엇으로 확인할지 적습니다.\n\n- 1·2·3 번호가 있는 실행 순서\n- 건드릴 경로·함수·API 이름\n- 마지막에 돌릴 테스트·lint·curl 등\n\n여기에는 넣지 마세요: '답은 JSON으로', '요약·다음 단계 포함'처럼 에이전트 답장 형식을 정하는 말 — 그건 코드 작업과 다른 종류의 지시입니다.",
       bad: "우선 스키마 만들고, 그다음 API 하고, 프론트는 알아서.",
       good:
-        "1) SPEC의 모델에 맞춰 prisma/schema.prisma 수정 후 pnpm prisma migrate dev.\n2) POST /api/event/spin 구현: 행 잠금·당첨 수량 반영(SPEC의 시그니처 따름).\n3) src/app/event/page.tsx에서 위 API 호출, 성공/실패 메시지 표시.\n4) pnpm test && pnpm lint 통과 후, SPEC에 있는 curl 예시로 수동 확인.",
+        "- 1) SPEC의 모델에 맞춰 prisma/schema.prisma 수정 후 pnpm prisma migrate dev.\n- 2) POST /api/event/spin 구현: 행 잠금·당첨 수량 반영(SPEC의 시그니처 따름).\n- 3) src/app/event/page.tsx에서 위 API 호출, 성공/실패 메시지 표시.\n- 4) pnpm test && pnpm lint 통과 후, SPEC에 있는 curl 예시로 수동 확인.",
       tips: [
         "자동 구조화(SPEC)에 순서가 있다면, 여기서 같은 순서로 짧게 다시 쓰면 실행이 어긋나지 않습니다.",
         "각 번호 단계가 끝났는지 스스로 점검할 수 있게 쓰면 좋습니다.",

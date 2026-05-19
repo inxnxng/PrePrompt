@@ -1,6 +1,7 @@
 import {
     normalizeStructuredStringField,
     sanitizePlainStageOutput,
+    stripActionSliceEchoHeading,
     sumNullableTokenParts,
 } from "@/lib/agent/outputHelpers";
 import type { StructuredPromptResult } from "@/lib/agent/types";
@@ -161,7 +162,8 @@ export async function generateStructuredCursorAgentPerStage(
         const fieldPrompt = combinedAgentPrompt(sys, user);
         const fieldRun = await callCursorAgent(fieldPrompt, cursorAgentModel);
         tokenParts.push(estimateTokens(fieldPrompt) + estimateTokens(fieldRun.output));
-        partial[key] = sanitizePlainStageOutput(normalizeStructuredStringField(fieldRun.output));
+        const raw = sanitizePlainStageOutput(normalizeStructuredStringField(fieldRun.output));
+        partial[key] = key === "actionSlice" ? stripActionSliceEchoHeading(raw) : raw;
     }
 
     return {

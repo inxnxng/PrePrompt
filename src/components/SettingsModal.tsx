@@ -189,9 +189,16 @@ export function SettingsModal({ compact = false, triggerClassName, onResetSessio
                         <DialogHeader>
                             <DialogTitle>{t.settingsTitle}</DialogTitle>
                             <DialogDescription>
-                                {t.settingsDesc}
-                                <br /><br />
-                                <strong className="text-foreground">Security Note:</strong> {t.settingsSecurity}
+                                {tempProvider === "cursorAgent" ? (
+                                    t.settingsDescCursorAgent
+                                ) : (
+                                    <>
+                                        {t.settingsDesc}
+                                        <br /><br />
+                                        <strong className="text-foreground">Security Note:</strong>{" "}
+                                        {t.settingsSecurity}
+                                    </>
+                                )}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-6 py-4">
