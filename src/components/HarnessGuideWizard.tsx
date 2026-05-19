@@ -2,10 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getHandoffArchetype } from "@/lib/handoffArchetypes";
 import {
+  collectUserTags,
   HARNESS_GUIDE_STEPS,
   HARNESS_GUIDE_UI,
-  collectUserTags,
   rankTemplates,
   resolveProgressShort,
   type HarnessGuideOption,
@@ -14,7 +15,6 @@ import {
   fetchSimilarSitesRecommendation,
   MISSING_GEMINI_KEY,
 } from "@/lib/playbook/fetchSimilarSitesRecommendation";
-import type { Language } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { usePromptStore } from "@/store/usePromptStore";
 import { ArrowLeftIcon, CompassIcon, Loader2Icon, RotateCcwIcon } from "lucide-react";
@@ -24,10 +24,9 @@ import { useMemo, useState } from "react";
 type Phase = "wizard" | "results";
 
 export function HarnessGuideWizard() {
-  const language = usePromptStore((s) => s.language) as Language;
   const apiKey = usePromptStore((s) => s.apiKey);
   const llmProvider = usePromptStore((s) => s.llmProvider);
-  const ui = HARNESS_GUIDE_UI[language];
+  const ui = HARNESS_GUIDE_UI;
   const n = HARNESS_GUIDE_STEPS.length;
 
   const [phase, setPhase] = useState<Phase>("wizard");
@@ -101,7 +100,6 @@ export function HarnessGuideWizard() {
       const text = await fetchSimilarSitesRecommendation({
         provider: llmProvider,
         apiKey,
-        language,
         picked,
       });
       setSimilarText(text);
@@ -166,11 +164,11 @@ export function HarnessGuideWizard() {
           </div>
           <div className="flex gap-1 sm:gap-1.5">
             {HARNESS_GUIDE_STEPS.map((step, i) => {
-              const short = resolveProgressShort(language, i, picked);
+              const short = resolveProgressShort(i, picked);
               const isFilled = short != null;
               const isCurrent = phase === "wizard" && i === stepIndex;
               const canJump = phase === "results" || i <= stepIndex;
-              const stepTitle = step.question[language];
+              const stepTitle = step.question;
               const jumpHint = ui.progressJumpToEdit;
               return (
                 <button
@@ -239,8 +237,8 @@ export function HarnessGuideWizard() {
                 ) : null}
               </div>
               <div className="space-y-2">
-                <h2 className="text-lg font-semibold tracking-tight">{currentStep.question[language]}</h2>
-                <OptionGrid lang={language} options={currentStep.options} onPick={handlePick} />
+                <h2 className="text-lg font-semibold tracking-tight">{currentStep.question}</h2>
+                <OptionGrid options={currentStep.options} onPick={handlePick} />
               </div>
             </section>
           )}
@@ -261,13 +259,13 @@ export function HarnessGuideWizard() {
                     <Card key={template.id} className="border-border/80 shadow-sm overflow-hidden">
                       <CardHeader className="pb-2">
                         <div className="flex flex-wrap items-start justify-between gap-2">
-                          <CardTitle className="text-base leading-snug">{template.title[language]}</CardTitle>
+                          <CardTitle className="text-base leading-snug">{template.title}</CardTitle>
                           <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
                             {ui.matchScore(score)}
                           </span>
                         </div>
                         <CardDescription className="text-sm leading-relaxed">
-                          {template.description[language]}
+                          {template.description}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3 pt-0">
@@ -276,14 +274,18 @@ export function HarnessGuideWizard() {
                         </p>
                         <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
                           {template.reasons.map((r, idx) => (
-                            <li key={idx}>{r[language]}</li>
+                            <li key={idx}>{r}</li>
                           ))}
                         </ul>
                         {template.bundleHint ? (
                           <p className="text-[11px] text-muted-foreground border-t border-border/60 pt-3">
-                            {template.bundleHint[language]}
+                            {template.bundleHint}
                           </p>
                         ) : null}
+                        <p className="text-[11px] text-foreground/90 border-t border-border/60 pt-3 leading-relaxed">
+                          전달 ZIP: 홈 화면 오른쪽 미리보기에서 유형 「{getHandoffArchetype(template.archetypeId).title}」을
+                          고른 뒤, 전달 대상(Cursor·Claude 등)을 선택하고 다운로드하세요.
+                        </p>
                         <p className="text-[11px] font-mono text-muted-foreground/90">template_id: {template.id}</p>
                       </CardContent>
                     </Card>
@@ -338,11 +340,9 @@ export function HarnessGuideWizard() {
 }
 
 function OptionGrid({
-  lang,
   options,
   onPick,
 }: {
-  lang: Language;
   options: HarnessGuideOption[];
   onPick: (id: string) => void;
 }) {
@@ -358,8 +358,8 @@ function OptionGrid({
             "hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
           )}
         >
-          <div className="font-medium text-foreground">{opt.label[lang]}</div>
-          {opt.hint ? <div className="text-sm text-muted-foreground mt-1 leading-relaxed">{opt.hint[lang]}</div> : null}
+          <div className="font-medium text-foreground">{opt.label}</div>
+          {opt.hint ? <div className="text-sm text-muted-foreground mt-1 leading-relaxed">{opt.hint}</div> : null}
         </button>
       ))}
     </div>

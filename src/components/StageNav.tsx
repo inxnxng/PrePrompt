@@ -9,12 +9,10 @@ export type StageKey = Exclude<
     keyof CognitiveModel,
     | "apiKey"
     | "llmProvider"
-    | "language"
+    | "cursorAgentModel"
     | "isGenerating"
-    | "baselineTokens"
     | "deepPlan"
     | "orchestrationTokenTotal"
-    | "compactPlanning"
 >;
 
 export type Stage = {
@@ -74,22 +72,22 @@ export function StageNav({
                             "relative flex items-center rounded-md text-sm transition-colors",
                             collapsed
                                 ? cn(
-                                      "h-9 w-9 shrink-0 justify-center p-0",
-                                      isActive
-                                          ? "bg-foreground text-background"
-                                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  )
+                                    "h-9 w-9 shrink-0 justify-center p-0",
+                                    isActive
+                                        ? "bg-foreground text-background"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )
                                 : cn(
-                                      "w-full gap-3 px-3 py-2.5 text-left",
-                                      isActive
-                                          ? "bg-foreground text-background"
-                                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  )
+                                    "w-full gap-3 px-3 py-2.5 text-left",
+                                    isActive
+                                        ? "bg-foreground text-background"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                )
                         )}
                     >
                         {!collapsed &&
-                        hasContent &&
-                        !(isCompleted && !isActive) ? (
+                            hasContent &&
+                            !(isCompleted && !isActive) ? (
                             <span
                                 className={cn(
                                     "absolute left-1 top-1/2 h-7 w-0.5 -translate-y-1/2 rounded-full",
@@ -107,8 +105,8 @@ export function StageNav({
                                     : isCompleted
                                         ? "border-foreground bg-foreground text-background"
                                         : hasContent
-                                          ? "border-primary/55 bg-primary/10 text-primary"
-                                          : "border-border"
+                                            ? "border-primary/55 bg-primary/10 text-primary"
+                                            : "border-border"
                             )}
                         >
                             {isCompleted && !isActive ? (

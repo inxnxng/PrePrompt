@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import { NextRequest, NextResponse } from "next/server";
+import { spawn } from "node:child_process";
 
 /**
  * Cursor-Agent CLI proxy.
@@ -67,10 +67,12 @@ type AgentRunResult = {
     outputChars: number;
 };
 
-async function runCursorAgent(prompt: string): Promise<AgentRunResult> {
+async function runCursorAgent(prompt: string, model?: string): Promise<AgentRunResult> {
     const bin = resolveBin();
     const flags = resolveFlags();
-    const args = [...flags, prompt];
+    const m = typeof model === "string" ? model.trim() : "";
+    const modelArgs = m.length > 0 ? ["--model", m] : [];
+    const args = [...flags, ...modelArgs, prompt];
 
     return await new Promise<AgentRunResult>((resolve, reject) => {
         let proc;
@@ -151,25 +153,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ error: "Too many requests", code: "RATE_LIMIT" }, { status: 429 });
     }
 
-    let body: { prompt?: unknown };
+    let body: { prompt?: unknown; model?: unknown };
     try {
         const text = await req.text();
         if (text.length > MAX_BODY_BYTES) {
             return NextResponse.json({ error: "Body too large", code: "PAYLOAD" }, { status: 413 });
         }
-        body = JSON.parse(text) as { prompt?: unknown };
+        body = JSON.parse(text) as { prompt?: unknown; model?: unknown };
     } catch {
         return NextResponse.json({ error: "Invalid JSON", code: "BAD_JSON" }, { status: 400 });
     }
 
     const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
+    const model = typeof body?.model === "string" ? body.model.trim() : "";
     if (!prompt) {
         return NextResponse.json({ error: "Empty prompt", code: "BAD_INPUT" }, { status: 400 });
     }
 
     let result: AgentRunResult;
     try {
-        result = await runCursorAgent(prompt);
+        result = await runCursorAgent(prompt, model);
     } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         return NextResponse.json(

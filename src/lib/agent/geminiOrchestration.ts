@@ -1,11 +1,10 @@
-import { normalizeDeepPlan } from "@/lib/deepPlan";
-import { sanitizeLlmOutputText } from "@/lib/sanitizeLlmOutput";
-import { buildDeepPlanSystemInstruction, buildFiveFieldsSystemInstruction } from "@/lib/llmOrchestrationPrompts";
-import type { Language } from "@/lib/i18n";
-import { translations } from "@/lib/i18n";
-import type { CognitiveModel } from "@/store/usePromptStore";
 import { normalizeStructuredStringField } from "@/lib/agent/outputHelpers";
 import type { StructuredPromptResult } from "@/lib/agent/types";
+import { normalizeDeepPlan } from "@/lib/deepPlan";
+import { t } from "@/lib/i18n";
+import { buildDeepPlanSystemInstruction, buildFiveFieldsSystemInstruction } from "@/lib/llmOrchestrationPrompts";
+import { sanitizeLlmOutputText } from "@/lib/sanitizeLlmOutput";
+import type { CognitiveModel } from "@/store/usePromptStore";
 
 function usageTotal(data: unknown): number | null {
     const u = (data as { usageMetadata?: { totalTokenCount?: number } }).usageMetadata;
@@ -27,9 +26,6 @@ function extractText(data: unknown): string {
 
 const MODEL = "gemini-2.5-flash";
 
-const DEFAULT_SERVER_STATUS_HINT =
-    "For server errors (HTTP 5xx), you can check Google AI Studio service status: https://aistudio.google.com/status";
-
 function geminiUpstreamMessage(upstream: unknown): string | null {
     if (upstream === null || upstream === undefined) return null;
     if (typeof upstream === "string") {
@@ -49,16 +45,14 @@ function geminiUpstreamMessage(upstream: unknown): string | null {
     return null;
 }
 
-function serverStatusHint(httpStatus: number, language: Language | undefined): string {
+function serverStatusHint(httpStatus: number): string {
     if (httpStatus < 500 || httpStatus > 599) return "";
-    const line = language ? translations[language].alertGeminiServerStatusHint : DEFAULT_SERVER_STATUS_HINT;
-    return `\n\n${line}`;
+    return `\n\n${t.alertGeminiServerStatusHint}`;
 }
 
 async function callGeminiProxy(
     apiKey: string,
-    googleBody: Record<string, unknown>,
-    language?: Language
+    googleBody: Record<string, unknown>
 ): Promise<{ data: unknown; tokens: number | null }> {
     const res = await fetch("/api/gemini", {
         method: "POST",
@@ -78,7 +72,7 @@ async function callGeminiProxy(
     }
 
     if (!res.ok) {
-        const hint = serverStatusHint(res.status, language);
+        const hint = serverStatusHint(res.status);
         const envelope = data as {
             error?: string;
             code?: string;
@@ -149,16 +143,14 @@ function mergeStructuredFromDeepPlanAndFiveFieldsJson(
  */
 export async function generateStructuredGemini(
     naturalPrompt: string,
-    apiKey: string,
-    compact: boolean,
-    language?: Language
+    apiKey: string
 ): Promise<StructuredPromptResult> {
     if (!apiKey.trim()) {
         throw new Error("No API key provided");
     }
 
     const deepPlanBody = {
-        systemInstruction: { parts: [{ text: buildDeepPlanSystemInstruction(compact, language) }] },
+        systemInstruction: { parts: [{ text: buildDeepPlanSystemInstruction() }] },
         contents: [{ parts: [{ text: `User draft:\n${JSON.stringify(naturalPrompt)}` }] }],
         generationConfig: {
             temperature: 0.2,
@@ -166,7 +158,7 @@ export async function generateStructuredGemini(
         },
     };
 
-    const { data: dataA, tokens: tA } = await callGeminiProxy(apiKey, deepPlanBody, language);
+    const { data: dataA, tokens: tA } = await callGeminiProxy(apiKey, deepPlanBody);
     const deepPlanJsonText = extractText(dataA);
 
     let deepRaw: unknown;
@@ -180,7 +172,7 @@ export async function generateStructuredGemini(
     const fiveFieldsUser = `Deep plan JSON:\n${JSON.stringify(deepPlan)}\n\nOriginal draft:\n${JSON.stringify(naturalPrompt)}`;
 
     const fiveFieldsBody = {
-        systemInstruction: { parts: [{ text: buildFiveFieldsSystemInstruction(language) }] },
+        systemInstruction: { parts: [{ text: buildFiveFieldsSystemInstruction() }] },
         contents: [{ parts: [{ text: fiveFieldsUser }] }],
         generationConfig: {
             temperature: 0.15,
@@ -188,7 +180,7 @@ export async function generateStructuredGemini(
         },
     };
 
-    const { data: dataB, tokens: tB } = await callGeminiProxy(apiKey, fiveFieldsBody, language);
+    const { data: dataB, tokens: tB } = await callGeminiProxy(apiKey, fiveFieldsBody);
     const fiveFieldsJsonText = extractText(dataB);
 
     return mergeStructuredFromDeepPlanAndFiveFieldsJson(deepPlanJsonText, fiveFieldsJsonText, tA, tB);

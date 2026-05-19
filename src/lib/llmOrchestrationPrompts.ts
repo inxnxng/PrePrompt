@@ -1,4 +1,3 @@
-import type { Language } from "@/lib/i18n";
 import schemaPack from "@/prompts/deepPlan.schema.json";
 import orchestration from "@/prompts/orchestration.en.json";
 
@@ -15,8 +14,8 @@ export const AGENT_COCKPIT_ORDER: AgentCockpitKey[] = [
 /** Harness policy version surfaced in the UI so users can audit which constraint pack produced a run. */
 export const HARNESS_POLICY_VERSION: number = orchestration.version;
 
-function localeKey(language: Language | undefined): "en" | "ko" {
-    return language === "ko" ? "ko" : "en";
+function localeKey(): "ko" {
+    return "ko";
 }
 
 function formatGlobalConstraintsBlock(): string {
@@ -24,9 +23,8 @@ function formatGlobalConstraintsBlock(): string {
 }
 
 /** Deep-plan step: English base prompt + locale suffix (human-readable strings inside JSON). */
-export function buildDeepPlanSystemInstruction(compact: boolean, language: Language | undefined): string {
+export function buildDeepPlanSystemInstruction(): string {
     const p = orchestration.deepPlan;
-    const density = compact ? p.densityCompact : p.densityDefault;
     return [
         formatGlobalConstraintsBlock(),
         "",
@@ -38,14 +36,14 @@ export function buildDeepPlanSystemInstruction(compact: boolean, language: Langu
         "",
         "Semantics:",
         ...p.semanticsBullets.map((b) => `- ${b}`),
-        `- ${density}`,
+        `- ${p.densityDefault}`,
         "",
-        orchestration.localeSuffix.structuredJson[localeKey(language)],
+        orchestration.localeSuffix.structuredJson[localeKey()],
     ].join("\n");
 }
 
 /** Five-field step: English base prompt + same structured JSON locale suffix as deep-plan step. */
-export function buildFiveFieldsSystemInstruction(language: Language | undefined): string {
+export function buildFiveFieldsSystemInstruction(): string {
     const b = orchestration.fiveFields;
     return [
         formatGlobalConstraintsBlock(),
@@ -57,12 +55,12 @@ export function buildFiveFieldsSystemInstruction(language: Language | undefined)
         "",
         b.closing,
         "",
-        orchestration.localeSuffix.structuredJson[localeKey(language)],
+        orchestration.localeSuffix.structuredJson[localeKey()],
     ].join("\n");
 }
 
 /** Per-field plain-text fill (used by local agent backends like cursor-agent). */
-export function buildAgentSingleFieldSystem(field: AgentCockpitKey, language: Language | undefined): string {
+export function buildAgentSingleFieldSystem(field: AgentCockpitKey): string {
     const o = orchestration.agent;
     const spec = o.fieldSpec[field];
     return [
@@ -72,7 +70,7 @@ export function buildAgentSingleFieldSystem(field: AgentCockpitKey, language: La
         "",
         spec,
         "",
-        orchestration.localeSuffix.agentPlainSlot[localeKey(language)],
+        orchestration.localeSuffix.agentPlainSlot[localeKey()],
         "",
         o.plainOutputRules,
     ].join("\n");

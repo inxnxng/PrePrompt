@@ -44,5 +44,10 @@ yarn-error.log*
 next-env.d.ts
 
 # bench nested apps
-bench/runs/**/node_modules
-bench/runs/**/.next
+bench/
+
+.agents
+
+# IDE
+.idea
+.vscode

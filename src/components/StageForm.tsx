@@ -19,6 +19,7 @@ type Props = {
     onAutoStructure?: () => void;
     isFirst: boolean;
     isLast: boolean;
+    totalStages: number;
     t: Translation;
 };
 
@@ -32,10 +33,14 @@ export function StageForm({
     onAutoStructure,
     isFirst,
     isLast,
+    totalStages,
     t
 }: Props) {
-    const [tipsOpen, setTipsOpen] = useState(true);
+    const [guidancePanelOpen, setGuidancePanelOpen] = useState(true);
     const meta = t.stages[stage.key];
+    const hasTips = Boolean(meta.tips?.length);
+    const hasExamples = Boolean(meta.bad && meta.good);
+    const hasGuidancePanel = hasTips || hasExamples;
 
     // Specificity indicator
     const count = value.length;
@@ -55,10 +60,9 @@ export function StageForm({
 
     return (
         <div className="flex flex-col gap-6 min-h-full">
-            {/* Header & Auto-Structure */}
-            <div className="flex items-start justify-between gap-4">
-                <p className="text-sm text-muted-foreground leading-relaxed">{meta.description}</p>
-                {isFirst && onAutoStructure && (
+            {/* Auto-Structure (first stage only) */}
+            {isFirst && onAutoStructure && (
+                <div className="flex justify-end">
                     <Button
                         size="sm"
                         variant="secondary"
@@ -72,60 +76,69 @@ export function StageForm({
                             <span>{t.autoStructure}</span>
                         )}
                     </Button>
-                )}
-            </div>
+                </div>
+            )}
 
-            {/* Specificity Tips (Collapsible) */}
-            {meta.tips && meta.tips.length > 0 && (
+            {/* Tips + bad/good examples (single collapsible) */}
+            {hasGuidancePanel && (
                 <div className="rounded-md border border-border bg-muted/20 overflow-hidden text-left">
                     <button
-                        onClick={() => setTipsOpen(!tipsOpen)}
+                        type="button"
+                        onClick={() => setGuidancePanelOpen(!guidancePanelOpen)}
                         className="w-full flex items-center justify-between p-3 text-xs font-medium hover:bg-muted/50 transition-colors"
                     >
                         <div className="flex items-center gap-2 text-muted-foreground">
                             <LightbulbIcon className="w-3.5 h-3.5 text-amber-500" />
                             {t.tipsLabel}
                         </div>
-                        <ChevronDownIcon className={cn("w-4 h-4 text-muted-foreground transition-transform", tipsOpen ? "rotate-180" : "")} />
+                        <ChevronDownIcon
+                            className={cn("w-4 h-4 text-muted-foreground transition-transform", guidancePanelOpen ? "rotate-180" : "")}
+                        />
                     </button>
-                    {tipsOpen && (
+                    {guidancePanelOpen && (
                         <div className="p-3 pt-0 border-t border-border/50 bg-background/30 text-left">
-                            <ul className="space-y-1.5 mt-2">
-                                {meta.tips.map((tip, i) => (
-                                    <li key={i} className="text-[11px] text-muted-foreground flex gap-2">
-                                        <span className="text-muted-foreground/50 mt-[1px]">•</span>
-                                        <span className="leading-relaxed">{tip}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                            {hasTips && (
+                                <ul className="space-y-1.5 mt-2">
+                                    {(meta.tips ?? []).map((tip, i) => (
+                                        <li key={i} className="text-[11px] text-muted-foreground flex gap-2">
+                                            <span className="text-muted-foreground/50 mt-[1px]">•</span>
+                                            <span className="leading-relaxed">{tip}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            {hasExamples && (
+                                <div className={cn("grid grid-cols-2 gap-3", hasTips && "mt-4")}>
+                                    <div className="rounded-md border border-border p-3 flex flex-col items-start text-left bg-background/40">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[10px] text-destructive border-destructive/40 bg-destructive/5 rounded-sm px-1.5 py-0"
+                                            >
+                                                {t.bad}
+                                            </Badge>
+                                        </div>
+                                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
+                                            {meta.bad}
+                                        </pre>
+                                    </div>
+                                    <div className="rounded-md border border-border p-3 flex flex-col items-start bg-emerald-500/5 text-left">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <Badge
+                                                variant="outline"
+                                                className="text-[10px] text-emerald-600 border-emerald-600/40 bg-emerald-600/10 rounded-sm px-1.5 py-0"
+                                            >
+                                                {t.good}
+                                            </Badge>
+                                        </div>
+                                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
+                                            {meta.good}
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* Bad vs Good examples */}
-            {meta.bad && meta.good && (
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-md border border-border p-3 flex flex-col items-start text-left">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <Badge variant="outline" className="text-[10px] text-destructive border-destructive/40 bg-destructive/5 rounded-sm px-1.5 py-0">
-                                {t.bad}
-                            </Badge>
-                        </div>
-                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
-                            {meta.bad}
-                        </pre>
-                    </div>
-                    <div className="rounded-md border border-border p-3 flex flex-col items-start bg-emerald-500/5 text-left">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600/40 bg-emerald-600/10 rounded-sm px-1.5 py-0">
-                                {t.good}
-                            </Badge>
-                        </div>
-                        <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed max-w-full overflow-hidden">
-                            {meta.good}
-                        </pre>
-                    </div>
                 </div>
             )}
 
@@ -151,7 +164,7 @@ export function StageForm({
                 />
             </div>
 
-            {/* Navigation */}
+            {/* Step navigation */}
             <div className="flex items-center justify-between pt-2 border-t border-border shrink-0 mt-auto">
                 <Button
                     variant="outline"
@@ -163,7 +176,7 @@ export function StageForm({
                 </Button>
                 <div className="flex items-center gap-4">
                     <span className="text-xs text-muted-foreground flex items-center">
-                        {t.stepOf(stage.id + 1, 6)}
+                        {t.stepOf(stage.id + 1, totalStages)}
                     </span>
                     {isLast ? (
                         <div className="flex items-center gap-3">
@@ -171,9 +184,14 @@ export function StageForm({
                                 <SparklesIcon className="w-3.5 h-3.5 text-amber-500" />
                                 {t.readyInSidebar}
                             </span>
-                            <Button size="sm" onClick={onNext} disabled={isGenerating} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                            <Button
+                                size="sm"
+                                onClick={onNext}
+                                disabled={isGenerating}
+                                className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                            >
                                 <CheckIcon className="w-4 h-4" />
-                                {t.done}
+                                {t.doneOpenPreview}
                             </Button>
                         </div>
                     ) : (

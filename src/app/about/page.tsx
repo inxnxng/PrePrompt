@@ -2,8 +2,7 @@
 
 import { STAGES } from "@/components/StageNav";
 import { Button } from "@/components/ui/button";
-import { translations } from "@/lib/i18n";
-import { usePromptStore } from "@/store/usePromptStore";
+import { t } from "@/lib/i18n";
 import { 
     ArrowLeft as ArrowLeftIcon, 
     CodeIcon,
@@ -14,9 +13,6 @@ import {
 import Link from "next/link";
 
 export default function AboutPage() {
-    const language = usePromptStore((state) => state.language);
-    const t = translations[language];
-
     // We only want to show the 5 structural stages in the guidelines,
     // skipping 'naturalPrompt' (index 0) as it's just the initial unstructured draft.
     const structuredStages = STAGES.slice(1);

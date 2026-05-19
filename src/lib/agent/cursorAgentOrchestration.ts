@@ -1,20 +1,19 @@
-import type { DeepPlan } from "@/lib/deepPlan";
-import { normalizeDeepPlan } from "@/lib/deepPlan";
-import {
-    AGENT_COCKPIT_ORDER,
-    buildAgentSingleFieldSystem,
-    buildDeepPlanSystemInstruction,
-    agentFieldTaskLabel,
-    type AgentCockpitKey,
-} from "@/lib/llmOrchestrationPrompts";
-import type { Language } from "@/lib/i18n";
-import { estimateTokens } from "@/store/usePromptStore";
 import {
     normalizeStructuredStringField,
     sanitizePlainStageOutput,
     sumNullableTokenParts,
 } from "@/lib/agent/outputHelpers";
 import type { StructuredPromptResult } from "@/lib/agent/types";
+import type { DeepPlan } from "@/lib/deepPlan";
+import { normalizeDeepPlan } from "@/lib/deepPlan";
+import {
+    AGENT_COCKPIT_ORDER,
+    agentFieldTaskLabel,
+    buildAgentSingleFieldSystem,
+    buildDeepPlanSystemInstruction,
+    type AgentCockpitKey,
+} from "@/lib/llmOrchestrationPrompts";
+import { estimateTokens } from "@/store/usePromptStore";
 
 function cursorAgentUpstreamMessage(upstream: unknown): string | null {
     if (upstream === null || upstream === undefined) return null;
@@ -37,11 +36,12 @@ type CursorAgentResponse = {
     outputChars: number;
 };
 
-async function callCursorAgent(prompt: string): Promise<CursorAgentResponse> {
+async function callCursorAgent(prompt: string, model?: string): Promise<CursorAgentResponse> {
+    const m = typeof model === "string" ? model.trim() : "";
     const res = await fetch("/api/cursor-agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify(m.length > 0 ? { prompt, model: m } : { prompt }),
     });
     const raw = await res.text();
     let data: unknown;
@@ -128,16 +128,15 @@ function buildAgentStageUserContent(
  */
 export async function generateStructuredCursorAgentPerStage(
     naturalPrompt: string,
-    compact: boolean,
-    language?: Language
+    cursorAgentModel?: string
 ): Promise<StructuredPromptResult> {
     const tokenParts: (number | null)[] = [];
 
     const deepPlanPrompt = combinedAgentPrompt(
-        buildDeepPlanSystemInstruction(compact, language),
+        buildDeepPlanSystemInstruction(),
         `User draft:\n${JSON.stringify(naturalPrompt)}`
     );
-    const planRun = await callCursorAgent(deepPlanPrompt);
+    const planRun = await callCursorAgent(deepPlanPrompt, cursorAgentModel);
     tokenParts.push(estimateTokens(deepPlanPrompt) + estimateTokens(planRun.output));
 
     let deepRaw: unknown;
@@ -157,10 +156,10 @@ export async function generateStructuredCursorAgentPerStage(
     };
 
     for (const key of AGENT_COCKPIT_ORDER) {
-        const sys = buildAgentSingleFieldSystem(key, language);
+        const sys = buildAgentSingleFieldSystem(key);
         const user = buildAgentStageUserContent(naturalPrompt, deepPlan, key, partial);
         const fieldPrompt = combinedAgentPrompt(sys, user);
-        const fieldRun = await callCursorAgent(fieldPrompt);
+        const fieldRun = await callCursorAgent(fieldPrompt, cursorAgentModel);
         tokenParts.push(estimateTokens(fieldPrompt) + estimateTokens(fieldRun.output));
         partial[key] = sanitizePlainStageOutput(normalizeStructuredStringField(fieldRun.output));
     }

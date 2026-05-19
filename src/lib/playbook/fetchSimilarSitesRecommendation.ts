@@ -1,5 +1,4 @@
 import { HARNESS_GUIDE_STEPS, collectUserTags } from "@/lib/harnessGuideContent";
-import type { Language } from "@/lib/i18n";
 import type { LlmProvider } from "@/store/usePromptStore";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
@@ -50,59 +49,43 @@ function cursorAgentUpstreamMessage(upstream: unknown): string | null {
   return null;
 }
 
-function buildSystemInstruction(language: Language): string {
-  if (language === "ko") {
-    return [
-      "당신은 소프트웨어 엔지니어가 **실제로 브라우저에서 열 수 있는 공개 HTTPS 사이트**를 찾도록 돕는 조력자입니다.",
-      "주제: 구조화된 LLM 전달(handoff), 프롬프트·토큰 예산, 에이전트 하네스, Cursor/IDE 규칙, SPEC·문서화 등.",
-      "사용자가 고른 **채널·주제(예: IDE, 팀 채팅, 티켓, 고객 대면, 위키, 실시간 회의)**에 맞춰, 그 맥락에서 실무에 통하는 공식 문서·가이드를 우선 추천하세요.",
-      "",
-      "규칙:",
-      "- 한국어로만 답합니다.",
-      "- **확실하거나 공식 루트에 가까운 URL만** 제안합니다. 존재를 장담할 수 없는 깊은 경로는 넣지 마세요.",
-      "- 5~8개 항목. 각 항목: `**제목**` 한 줄, 다음 줄에 전체 URL(https://…), 다음 줄에 이 독자 프로필에 맞는 이유 한 문장.",
-      "- URL을 지어내지 마세요. 웹 검색 도구가 없다면 학습 데이터에 있는 유명 공식 문서·가이드 위주로 제한하세요.",
-      "- 로그인 필수만 있는 서비스를 유일한 추천으로 두지 마세요.",
-    ].join("\n");
-  }
+function buildSystemInstruction(): string {
   return [
-    "You help software engineers find **real, publicly accessible HTTPS sites** they can open in a browser.",
-    "Topics: structured LLM handoffs, prompt/token discipline, agent harnesses, Cursor/IDE rules, specs and technical writing.",
-    "Use the user’s **channel / theme** (IDE loop, team chat, tickets, customer-facing copy, doc/PR flow, live meetings, mixed) to prioritize links that practitioners actually use in that setting.",
+    "당신은 소프트웨어 엔지니어가 실제로 브라우저에서 열 수 있는 공개 HTTPS 사이트를 찾도록 돕는 조력자입니다.",
+    "주제: 구조화된 LLM 전달(handoff), 프롬프트·토큰 예산, 에이전트 하네스, Cursor/IDE 규칙, SPEC·문서화 등.",
+    "사용자가 고른 채널·주제(예: IDE, 팀 채팅, 티켓, 고객 대면, 위키, 실시간 회의)에 맞춰, 그 맥락에서 실무에 통하는 공식 문서·가이드를 우선 추천하세요.",
     "",
-    "Rules:",
-    "- Answer in English only.",
-    "- Suggest **only URLs you are confident exist**—prefer vendor doc roots and well-known guides over guessed deep links.",
-    "- 5–8 items. Each: one line `**Title**`, next line full URL (https://…), next line one sentence on fit for this reader profile.",
-    "- Do not fabricate URLs. Without live web access, stay with widely known official documentation you are confident about.",
-    "- Do not recommend login-only tools as the sole resource.",
+    "규칙:",
+    "- 한국어로만 답합니다.",
+    "- **확실하거나 공식 루트에 가까운 URL만** 제안합니다. 존재를 장담할 수 없는 깊은 경로는 넣지 마세요.",
+    "- 5~8개 항목. 각 항목: 제목 한 줄, 다음 줄에 전체 URL(https://…), 다음 줄에 이 독자 프로필에 맞는 이유 한 문장.",
+    "- URL을 지어내지 마세요. 웹 검색 도구가 없다면 학습 데이터에 있는 유명 공식 문서·가이드 위주로 제한하세요.",
+    "- 로그인 필수만 있는 서비스를 유일한 추천으로 두지 마세요.",
   ].join("\n");
 }
 
-function buildUserContent(language: Language, picked: (string | null)[]): string {
+function buildUserContent(picked: (string | null)[]): string {
   const lines: string[] = [];
   for (let i = 0; i < HARNESS_GUIDE_STEPS.length; i += 1) {
     const step = HARNESS_GUIDE_STEPS[i];
     const id = picked[i];
     const opt = step.options.find((o) => o.id === id);
     if (opt) {
-      lines.push(`${i + 1}. ${step.question[language]} — ${opt.label[language]}`);
+      lines.push(`${i + 1}. ${step.question} — ${opt.label}`);
     }
   }
   const ids = picked.filter((x): x is string => typeof x === "string" && x.length > 0);
   const tags = collectUserTags(ids);
   const head =
-    language === "ko"
-      ? "아래는 사용자가 플레이북에서 고른 값입니다. 첫 줄 근처의 채널·주제를 특히 반영해, 그 맥락에 맞는 참고 사이트를 제안하세요."
-      : "Below are the user’s playbook choices. Weight the **channel / theme** (usually the first question) heavily when picking sites.";
+    "아래는 사용자가 플레이북에서 고른 값입니다. 첫 줄 근처의 채널·주제를 특히 반영해, 그 맥락에 맞는 참고 사이트를 제안하세요.";
 
   return [
     head,
     "",
     lines.join("\n"),
     "",
-    language === "ko" ? "내부 태그 (참고):" : "Internal tags (reference):",
-    tags.length ? tags.join(", ") : language === "ko" ? "(없음)" : "(none)",
+    "내부 태그 (참고):",
+    tags.length ? tags.join(", ") : "(없음)",
   ].join("\n");
 }
 
@@ -182,11 +165,10 @@ export const MISSING_GEMINI_KEY = "MISSING_GEMINI_KEY";
 export async function fetchSimilarSitesRecommendation(params: {
   provider: LlmProvider;
   apiKey: string;
-  language: Language;
   picked: (string | null)[];
 }): Promise<string> {
-  const system = buildSystemInstruction(params.language);
-  const user = buildUserContent(params.language, params.picked);
+  const system = buildSystemInstruction();
+  const user = buildUserContent(params.picked);
 
   if (params.provider === "cursorAgent") {
     const prompt = `${system}\n\n---\n\n${user}`;

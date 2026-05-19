@@ -15,13 +15,13 @@ export async function generateStructuredPrompt(
     apiKey: string,
     options?: GenerateStructuredPromptOptions
 ): Promise<StructuredPromptResult> {
-    const compact = options?.compactPlanning === true;
-    const language = options?.language;
     const provider: LlmProvider = options?.provider ?? "gemini";
 
     if (provider === "cursorAgent") {
-        return generateStructuredCursorAgentPerStage(naturalPrompt, compact, language);
+        const cursorModel =
+            typeof options?.cursorAgentModel === "string" ? options.cursorAgentModel.trim() : "";
+        return generateStructuredCursorAgentPerStage(naturalPrompt, cursorModel);
     }
 
-    return generateStructuredGemini(naturalPrompt, apiKey, compact, language);
+    return generateStructuredGemini(naturalPrompt, apiKey);
 }

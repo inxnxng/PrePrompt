@@ -1,10 +1,19 @@
 import { normalizeDeepPlan, type DeepPlan } from "@/lib/deepPlan";
-import { Language } from "@/lib/i18n";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type LlmProvider = "gemini" | "cursorAgent";
 
+/**
+ * When adding a dedicated rationale field (e.g. `whyThisHandoff` / `tradeoffPrinciple`), expect to touch:
+ * - This type, `initialState`, `compileToPrompt`, and `persist.merge` in this file.
+ * - `AgentCockpitKey`, ordered keys, and `buildFiveFieldsSystemInstruction` / `buildAgentSingleFieldSystem` in `src/lib/llmOrchestrationPrompts.ts`.
+ * - `fiveFields.preamble` + `fieldMeaningsBullets` + `agent.fieldSpec` + `fieldTaskLabel` in `src/prompts/orchestration.en.json` (and any JSON schema if five-fields output is schema-validated).
+ * - Parsing/merging in `src/lib/agent/geminiOrchestration.ts`, `src/lib/agent/cursorAgentOrchestration.ts`, and `src/lib/agent/types.ts`.
+ * - UI: `src/components/StageNav.tsx`, `src/components/StageForm.tsx`, `src/lib/i18n.ts` stage copy, `src/components/PromptPreview.tsx`, `src/app/page.tsx` (`structured` apply to store).
+ * - Exports/handoff ZIP builders under `src/lib/exports.ts` (or peers) if bundled prompts include the new section.
+ * Note: `DeepPlan` already has `intentRouting.rationale`; a cockpit-level field would be user-facing handoff text, not a duplicate of that internal routing field.
+ */
 export type CognitiveModel = {
     naturalPrompt: string; // Step 0: Initial draft/raw thought
     intentLock: string;
@@ -15,15 +24,13 @@ export type CognitiveModel = {
     apiKey: string;
     /** Auto-Structure backend: Google Gemini (cloud, API key) or local cursor-agent CLI via /api/cursor-agent. */
     llmProvider: LlmProvider;
-    language: Language;
     isGenerating?: boolean; // Ephemeral state
-    baselineTokens: number | null;
     /** Deep-plan JSON from Auto-Structure (null until orchestration runs). */
     deepPlan: DeepPlan | null;
     /** Deep-plan + five-field steps: Gemini usageMetadata; for cursor-agent, estimated by char heuristic. */
     orchestrationTokenTotal: number | null;
-    /** Shorter deep-plan / five-field prompts when true (fewer checklist bullets). */
-    compactPlanning: boolean;
+    /** `cursor-agent --model` id when llmProvider is cursorAgent; empty string = CLI default. */
+    cursorAgentModel: string;
 };
 
 type PromptStore = CognitiveModel & {
@@ -40,12 +47,10 @@ const initialState: CognitiveModel = {
     responseContract: "",
     apiKey: "",
     llmProvider: "gemini",
-    language: "ko",
     isGenerating: false,
-    baselineTokens: null,
     deepPlan: null,
     orchestrationTokenTotal: null,
-    compactPlanning: false,
+    cursorAgentModel: "",
 };
 
 export const usePromptStore = create<PromptStore>()(
@@ -62,18 +67,35 @@ export const usePromptStore = create<PromptStore>()(
                 const p = (persisted ?? {}) as Partial<CognitiveModel> & {
                     /** Legacy persisted values include "ollama" (removed); coerce to cursorAgent. */
                     llmProvider?: unknown;
+                    /** Removed from schema; ignore if still in localStorage. */
+                    baselineTokens?: unknown;
+                    /** Removed UI locale; ignore if still in localStorage. */
+                    language?: unknown;
+                    /** Removed compact deep-plan mode; ignore if still in localStorage. */
+                    compactPlanning?: unknown;
                 };
-                const mergedDeep = p.deepPlan != null ? normalizeDeepPlan(p.deepPlan as object) : null;
+                const {
+                    baselineTokens: _legacyBaseline,
+                    language: _legacyLanguage,
+                    compactPlanning: _legacyCompact,
+                    ...restPersisted
+                } = p;
+                void _legacyLanguage;
+                void _legacyBaseline;
+                void _legacyCompact;
+                const mergedDeep =
+                    restPersisted.deepPlan != null ? normalizeDeepPlan(restPersisted.deepPlan as object) : null;
                 const rawProvider = String((p as { llmProvider?: unknown }).llmProvider ?? "");
                 const provider: LlmProvider =
                     rawProvider === "cursorAgent" || rawProvider === "ollama" ? "cursorAgent" : "gemini";
                 return {
                     ...current,
-                    ...p,
+                    ...restPersisted,
                     deepPlan: mergedDeep,
-                    orchestrationTokenTotal: p.orchestrationTokenTotal ?? null,
-                    compactPlanning: p.compactPlanning ?? false,
+                    orchestrationTokenTotal: restPersisted.orchestrationTokenTotal ?? null,
                     llmProvider: provider,
+                    cursorAgentModel:
+                        typeof restPersisted.cursorAgentModel === "string" ? restPersisted.cursorAgentModel : "",
                 };
             },
         }
@@ -90,12 +112,11 @@ export function compileToPrompt(
         CognitiveModel,
         | "naturalPrompt"
         | "apiKey"
-        | "language"
         | "isGenerating"
         | "deepPlan"
         | "orchestrationTokenTotal"
-        | "compactPlanning"
         | "llmProvider"
+        | "cursorAgentModel"
     >
 ): string {
     return [
