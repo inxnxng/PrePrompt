@@ -1,9 +1,9 @@
 "use client";
 
 import { SimilarSitesMarkdown } from "@/components/SimilarSitesMarkdown";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getHandoffArchetype } from "@/lib/handoffArchetypes";
 import {
   collectUserTags,
   HARNESS_GUIDE_STEPS,
@@ -11,6 +11,7 @@ import {
   rankTemplates,
   resolveProgressShort,
   type HarnessGuideOption,
+  type HarnessGuideTemplate,
 } from "@/lib/harnessGuideContent";
 import { buildPlaybookNaturalPromptDraft } from "@/lib/playbook/buildPlaybookNaturalPromptDraft";
 import {
@@ -20,7 +21,7 @@ import {
 import { markPlaybookHomeNavigation } from "@/lib/playbook/playbookHomeSession";
 import { cn } from "@/lib/utils";
 import { usePromptStore } from "@/store/usePromptStore";
-import { ArrowLeftIcon, CompassIcon, Loader2Icon, RotateCcwIcon } from "lucide-react";
+import { ArrowLeftIcon, CompassIcon, Loader2Icon, RotateCcwIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -132,9 +133,8 @@ export function HarnessGuideWizard() {
 
   const canGoBack = phase === "results" || stepIndex > 0;
 
-  const handleSendDraftToHome = () => {
-    const topTemplate = rankedTemplates[0]?.template ?? null;
-    const draft = buildPlaybookNaturalPromptDraft({ picked, topTemplate });
+  const sendDraftToHomeWithTemplate = (template: HarnessGuideTemplate | null) => {
+    const draft = buildPlaybookNaturalPromptDraft({ picked, chosenTemplate: template });
     const z = usePromptStore.getState();
     z.setField("intentLock", "");
     z.setField("realityAnchor", "");
@@ -144,8 +144,12 @@ export function HarnessGuideWizard() {
     z.setField("deepPlan", null);
     z.setField("orchestrationTokenTotal", null);
     z.setField("naturalPrompt", draft);
-    markPlaybookHomeNavigation();
+    markPlaybookHomeNavigation(template?.archetypeId ?? null);
     router.push("/");
+  };
+
+  const handleSendDraftToHome = () => {
+    sendDraftToHomeWithTemplate(rankedTemplates[0]?.template ?? null);
   };
 
   const remainingSteps = picked.filter((p) => p == null).length;
@@ -275,9 +279,10 @@ export function HarnessGuideWizard() {
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold tracking-tight">{ui.recommendedTitle}</h3>
-                <div className="space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed">{ui.recommendedCardsHint}</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {topTemplates.map(({ template, score }) => (
-                    <Card key={template.id} className="border-border/80 shadow-sm overflow-hidden">
+                    <Card key={template.id} className="border-border/80 shadow-sm overflow-hidden h-full">
                       <CardHeader className="pb-2">
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <CardTitle className="text-base leading-snug">{template.title}</CardTitle>
@@ -298,47 +303,86 @@ export function HarnessGuideWizard() {
                             <li key={idx}>{r}</li>
                           ))}
                         </ul>
-                        {template.bundleHint ? (
-                          <p className="text-[11px] text-muted-foreground border-t border-border/60 pt-3">
-                            {template.bundleHint}
-                          </p>
-                        ) : null}
-                        <p className="text-[11px] text-foreground/90 border-t border-border/60 pt-3 leading-relaxed">
-                          {ui.zipHandoffHint(getHandoffArchetype(template.archetypeId).title)}
-                        </p>
-                        <p className="text-[11px] font-mono text-muted-foreground/90">template_id: {template.id}</p>
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto"
+                          onClick={() => sendDraftToHomeWithTemplate(template)}
+                        >
+                          {ui.applyThisTemplateHome}
+                        </Button>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold tracking-tight">{ui.similarSitesTitle}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{ui.similarSitesIntro}</p>
-                <p className="text-[11px] text-muted-foreground">{similarBackendLabel}</p>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="w-full sm:w-auto gap-2"
-                  disabled={similarLoading || (llmProvider === "gemini" && !apiKey.trim())}
-                  onClick={handleSimilarSitesClick}
-                >
-                  {similarLoading ? <Loader2Icon className="h-4 w-4 shrink-0 animate-spin" aria-hidden /> : null}
-                  {similarLoading ? ui.similarSitesLoading : ui.similarSitesButton}
-                </Button>
-                {similarError ? (
-                  <p className="text-sm text-destructive whitespace-pre-wrap break-words">{similarError}</p>
-                ) : null}
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{ui.similarSitesDisclaimer}</p>
-                {similarText ? (
-                  <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-foreground">
-                    <SimilarSitesMarkdown text={similarText} />
+              <Card className="border-border/80 shadow-sm overflow-hidden">
+                <CardHeader className="space-y-3 pb-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1.5 min-w-0">
+                      <CardTitle className="text-lg font-semibold tracking-tight">{ui.similarSitesTitle}</CardTitle>
+                      <CardDescription className="text-sm leading-relaxed">{ui.similarSitesIntro}</CardDescription>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="w-fit shrink-0 font-normal text-[11px] px-2.5 py-1 whitespace-normal text-left sm:max-w-[min(100%,14rem)] sm:text-right leading-snug"
+                    >
+                      {similarBackendLabel}
+                    </Badge>
                   </div>
-                ) : !similarLoading && !similarError ? (
-                  <p className="text-sm text-muted-foreground">{ui.similarSitesEmptyHint}</p>
-                ) : null}
-              </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full sm:w-auto gap-2"
+                    disabled={similarLoading || (llmProvider === "gemini" && !apiKey.trim())}
+                    onClick={handleSimilarSitesClick}
+                  >
+                    {similarLoading ? <Loader2Icon className="h-4 w-4 shrink-0 animate-spin" aria-hidden /> : null}
+                    {similarLoading ? ui.similarSitesLoading : ui.similarSitesButton}
+                  </Button>
+                  {similarError ? (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+                      <p className="text-sm text-destructive whitespace-pre-wrap break-words">{similarError}</p>
+                    </div>
+                  ) : null}
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed pl-3 border-l-2 border-muted-foreground/25">
+                      {ui.similarSitesDisclaimer}
+                    </p>
+                    <div
+                      className={cn(
+                        "rounded-xl border min-h-[8.5rem] transition-colors",
+                        similarText
+                          ? "border-border bg-muted/25"
+                          : "border-dashed border-border/70 bg-muted/20",
+                        similarLoading && "border-primary/25 bg-muted/30"
+                      )}
+                    >
+                      {similarText ? (
+                        <div className="px-4 py-3.5 text-foreground text-sm leading-relaxed [&_a]:break-all [&_a]:text-primary [&_a]:underline-offset-2">
+                          <SimilarSitesMarkdown text={similarText} />
+                        </div>
+                      ) : similarLoading ? (
+                        <div className="flex flex-col items-center justify-center gap-2.5 py-12 px-4 text-sm text-muted-foreground">
+                          <Loader2Icon className="h-6 w-6 animate-spin text-primary/80" aria-hidden />
+                          <span className="text-center">{ui.similarSitesLoading}</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-2 py-12 px-6 text-center">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted border border-border/80">
+                            <SparklesIcon className="h-5 w-5 text-muted-foreground" aria-hidden />
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+                            {ui.similarSitesEmptyHint}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="space-y-3 pt-2">
                 <p className="text-xs text-muted-foreground leading-relaxed">{ui.sendToHomeDraftHint}</p>

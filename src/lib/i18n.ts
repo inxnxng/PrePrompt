@@ -180,6 +180,12 @@ export type Translation = {
   downloadZip: string;
   /** Handoff target (ZIP layout + harness file) */
   exportHandoffTarget: string;
+  /** ZIP / first-message handoff flavor */
+  exportHandoffArchetype: string;
+  /** Select option: no archetype-specific addenda */
+  exportHandoffArchetypeNone: string;
+  /** Short hint under archetype select */
+  exportHandoffArchetypeHint: string;
   /** Short hint under handoff target select */
   exportHandoffZipHint: string;
   handoffTargetCursor: string;
@@ -462,6 +468,10 @@ export const t: Translation = {
   previewOneLinerPreviewLabel: "첫 채팅 메시지(CHAT_MESSAGE.txt와 동일)",
   downloadZip: "전달 ZIP 받기",
   exportHandoffTarget: "전달 대상",
+  exportHandoffArchetype: "전달 유형",
+  exportHandoffArchetypeNone: "기본 (유형 없음)",
+  exportHandoffArchetypeHint:
+    "ZIP과 첫 메시지 문구에 반영됩니다. 플레이북 추천 카드로 넘어오면 한 번 맞춰지며, 여기서 바꿀 수 있습니다.",
   exportHandoffZipHint:
     "다섯 칸이 채워져 있을 때 ZIP을 받을 수 있습니다. SPEC·task·AGENTS·선택한 대상의 하네스 파일·첫 채팅 문구(CHAT_MESSAGE.txt)가 포함됩니다.",
   handoffTargetCursor: "Cursor (.cursor/rules)",

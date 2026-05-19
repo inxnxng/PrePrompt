@@ -214,8 +214,6 @@ export type HarnessGuideTemplate = {
   description: string;
   /** Short bullets explaining fit (shown after scoring) */
   reasons: string[];
-  /** Reserved for future zip / deep-link wiring */
-  bundleHint?: string;
 };
 
 
@@ -455,7 +453,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     title: "토큰 절약형 코드 전달",
     description: "범위 좁게, 배경 짧게, 금지 강하게. 짧은 확인 질문과 번호 단계.",
     reasons: ["핑퐁 비용이 큰데 반복은 허용할 때.", "좁은 범위·짧은 맥락·실행 단계 강조."],
-    bundleHint: "예정: 슬림 SPEC + .mdc 스타터 zip.",
   },
   {
     id: "tpl-spec-quality",
@@ -473,7 +470,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     title: "원샷 SPEC·문서 패키지",
     description: "리뷰어가 같은 그림을 보도록 앞에 맥락·완료 기준, 순서는 체크리스트로.",
     reasons: ["팀·문서 합의와 지시형 흐름.", "문서 산출·원샷 검증 전제."],
-    bundleHint: "예정: SPEC 템플릿 + AGENTS.md zip.",
   },
   {
     id: "tpl-spike-fast",
@@ -490,7 +486,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     title: "빠른 스파이크 경로",
     description: "범위 최소, 배경 얇게, 범위 밖 한 줄. 첫 패스는 속도 우선.",
     reasons: ["스파이크·탐색형 에이전트·IDE 루프.", "완전함보다 얇은 슬라이스."],
-    bundleHint: "예정: 최소 task JSON + 채팅 한 줄 팩.",
   },
   {
     id: "tpl-review-harness",
@@ -508,7 +503,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     title: "리뷰·감사 하네스",
     description: "금지·완료 기준·비목표를 선명히. 보안·컴플라이언스·아키 점검용.",
     reasons: ["리스크와 통과/실패 검사.", "리뷰 산출·촘촘한 에이전트·팀 독자."],
-    bundleHint: "예정: 체크리스트 중심 리뷰어용 zip.",
   },
   {
     id: "tpl-balanced-default",
@@ -526,7 +520,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     title: "균형형 PrePrompt 스타터",
     description: "다섯 칸 균형: 기준·맥락·금지·범위 안/밖·순서.",
     reasons: ["극단 없이 섞인 목표.", "형태를 아직 고르는 중일 때."],
-    bundleHint: "예정: 메인 앱 export 트리와 같은 범용 zip.",
   },
   {
     id: "tpl-tradeoff-priority",
@@ -544,7 +537,6 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
     description:
       "일정·합의가 겹칠 때 완료 기준·범위 칸에 충돌 목표와 우선순위(지킬 것/양보)를 짧게. 계약으로 읽히게.",
     reasons: ["일정+합의 태그가 같이 잡힐 때.", "근거 한 줄을 같은 칸에 실을 때."],
-    bundleHint: "예정: 균형형 zip + SPEC에 우선순위 소절.",
   },
 ];
 
@@ -566,7 +558,7 @@ export const HARNESS_GUIDE_UI: {
   similarSitesBackendCursor: string;
   similarSitesEmptyHint: string;
   startOver: string;
-  /** Primary: fill home step-0 draft from playbook picks, then go home */
+  /** Primary: fill home step-0 draft from playbook picks, then go home (uses 1st ranked template) */
   sendToHomeDraft: string;
   sendToHomeDraftHint: string;
   openEditor: string;
@@ -585,8 +577,10 @@ export const HARNESS_GUIDE_UI: {
   stepsRemaining: (n: number) => string;
   /** Progress cell: can jump back to re-pick */
   progressJumpToEdit: string;
-  /** Results card: ZIP download hint with dynamic archetype title */
-  zipHandoffHint: (archetypeTitle: string) => string;
+  /** Intro above recommended template cards */
+  recommendedCardsHint: string;
+  /** Per-card CTA: same as primary but for that template */
+  applyThisTemplateHome: string;
 } = {
   pageTitle: "하네스 플레이북",
   pageSubtitle:
@@ -597,7 +591,8 @@ export const HARNESS_GUIDE_UI: {
   matchScore: (n) => `맞춤 점수: ${n}`,
   reasonsTitle: "왜 맞는지",
   similarSitesTitle: "비슷한 사이트 추천",
-  similarSitesIntro: "버튼 전까지는 요청이 나가지 않습니다. 홈의 자동 구조화와 같은 백엔드(Gemini 키 또는 Cursor CLI)입니다.",
+  similarSitesIntro:
+    "버튼 전까지는 요청이 나가지 않습니다. 홈의 자동 구조화와 같은 백엔드(Gemini 키 또는 Cursor CLI)입니다. 추천은 쇼핑·공공 등 실제 이용자 서비스 위주이며, 위에서 고른 답과 이유를 연결해 줍니다.",
   similarSitesDisclaimer: "모델 생성 답변입니다. 링크는 직접 확인하세요.",
   similarSitesButton: "비슷한 사이트 추천받기",
   similarSitesLoading: "에이전트에 질문하는 중…",
@@ -607,7 +602,8 @@ export const HARNESS_GUIDE_UI: {
   similarSitesEmptyHint: "버튼을 누르면 여기에 표시됩니다.",
   startOver: "처음부터",
   openEditor: "메인 에디터로",
-  editorHint: "ZIP은 홈 미리보기에서 전달 유형과 대상을 고른 뒤 받으세요.",
+  editorHint:
+    "다섯 칸을 채운 뒤 「전달 결과」에서 ZIP과 첫 메시지를 받으세요. 전달 유형은 결과 화면에서 고르거나, 플레이북에서 카드를 누르면 미리 맞춰집니다.",
   backStep: "이전 단계",
   notChosen: "—",
   resultsTitle: "추천 결과",
@@ -616,8 +612,11 @@ export const HARNESS_GUIDE_UI: {
   progressComplete: "모든 단계 선택 완료",
   stepsRemaining: (n) => (n === 1 ? "남은 단계 1" : `남은 단계 ${n}`),
   progressJumpToEdit: "탭하면 이 단계로 돌아가 다시 고를 수 있어요",
+  recommendedCardsHint:
+    "각 카드의 버튼은 그 템플릿을 반영한 초안으로 홈의 스텝 0에 넣고 이동합니다. 아래 「홈에 초안 넣기」는 맞춤 점수 1순위 템플릿과 동일합니다.",
+  applyThisTemplateHome: "이 템플릿으로 홈에 초안 넣기",
   sendToHomeDraft: "홈에 초안 넣기",
-  sendToHomeDraftHint: "선택을 자연어 초안으로 스텝 0에 넣고 이동합니다. 다른 필드는 비웁니다.",
+  sendToHomeDraftHint:
+    "선택을 자연어 초안으로 스텝 0에 넣고 홈으로 이동합니다. 1순위 추천 템플릿이 초안에 포함됩니다. 다른 필드는 비웁니다.",
   openEditorBare: "초안 없이 홈으로",
-  zipHandoffHint: (t) => `ZIP: 홈 미리보기에서 「${t}」 유형과 전달 대상을 고른 뒤 다운로드하세요.`,
 };

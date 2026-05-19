@@ -1,6 +1,7 @@
 "use client";
 
 import { HandoffAgentTargetSelect } from "@/components/HandoffAgentTargetSelect";
+import { HandoffArchetypeSelect } from "@/components/HandoffArchetypeSelect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,10 +21,12 @@ import {
     handoffZipFilename,
     type HandoffAgentTarget,
 } from "@/lib/exports";
+import type { HandoffArchetypeId } from "@/lib/handoffArchetypes";
 import { Translation } from "@/lib/i18n";
+import { consumePlaybookHandoffArchetypeHint } from "@/lib/playbook/playbookHomeSession";
 import { CognitiveModel, compileToPrompt } from "@/store/usePromptStore";
 import { CheckIcon, ClipboardPasteIcon, MapPinIcon, PackageIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
     model: CognitiveModel;
@@ -51,11 +54,17 @@ export function HandoffExportCard({ model, t }: Props) {
     const [copiedOneLiner, setCopiedOneLiner] = useState(false);
     const [pathGuideOpen, setPathGuideOpen] = useState(false);
     const [handoffTarget, setHandoffTarget] = useState<HandoffAgentTarget>(DEFAULT_HANDOFF_TARGET);
+    const [handoffArchetype, setHandoffArchetype] = useState<HandoffArchetypeId | null>(null);
+
+    useEffect(() => {
+        const hinted = consumePlaybookHandoffArchetypeHint();
+        if (hinted) setHandoffArchetype(hinted);
+    }, []);
 
     const compiled = compileToPrompt(model);
     const isEmpty = compiled.trim() === "";
     const canExportZip = !isEmpty;
-    const oneLiner = buildChatOneLiner(model, null);
+    const oneLiner = buildChatOneLiner(model, handoffArchetype);
 
     const copyOneLiner = async () => {
         await navigator.clipboard.writeText(oneLiner);
@@ -64,7 +73,10 @@ export function HandoffExportCard({ model, t }: Props) {
     };
 
     const handleZip = () => {
-        downloadFile(buildHandoffZipBlob(model, handoffTarget, { archetypeId: null }), handoffZipFilename(handoffTarget));
+        downloadFile(
+            buildHandoffZipBlob(model, handoffTarget, { archetypeId: handoffArchetype }),
+            handoffZipFilename(handoffTarget)
+        );
     };
 
     return (
@@ -79,6 +91,11 @@ export function HandoffExportCard({ model, t }: Props) {
                         <span className="text-[11px] font-medium text-muted-foreground">{t.exportHandoffTarget}</span>
                         <HandoffAgentTargetSelect value={handoffTarget} onChange={setHandoffTarget} t={t} />
                     </label>
+                    <label className="flex flex-col gap-1.5">
+                        <span className="text-[11px] font-medium text-muted-foreground">{t.exportHandoffArchetype}</span>
+                        <HandoffArchetypeSelect value={handoffArchetype} onChange={setHandoffArchetype} t={t} />
+                    </label>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground sm:text-xs">{t.exportHandoffArchetypeHint}</p>
                     <p className="text-[11px] leading-relaxed text-muted-foreground sm:text-xs">{t.exportHandoffZipHint}</p>
                     <Button
                         type="button"
