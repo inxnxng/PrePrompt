@@ -29,6 +29,19 @@ export type Translation = {
   navResult: string;
   /** Nav label for /history (shared saved handoffs) */
   navHistory: string;
+  /** Nav label — return to app hub (/) from /work sidebar */
+  navStartScreen: string;
+  /** App hub (/) — page title */
+  hubTitle: string;
+  /** App hub (/) — same tagline as `appSubtitle1` + `appSubtitle2`, one line */
+  hubSubtitle: string;
+  /** App hub — card title for /work */
+  hubWorkTitle: string;
+  hubWorkDesc: string;
+  /** App hub — card blurb for /playbook */
+  hubPlaybookDesc: string;
+  /** App hub — card blurb for /history */
+  hubHistoryDesc: string;
   /** /history — shared handoff dashboard */
   historyPageTitle: string;
   historyPageSubtitle: string;
@@ -180,11 +193,9 @@ export type Translation = {
   downloadZip: string;
   /** Handoff target (ZIP layout + harness file) */
   exportHandoffTarget: string;
-  /** ZIP / first-message handoff flavor */
+  /** Optional archetype — shapes SPEC/AGENTS addenda and chat kickoff in ZIP */
   exportHandoffArchetype: string;
-  /** Select option: no archetype-specific addenda */
   exportHandoffArchetypeNone: string;
-  /** Short hint under archetype select */
   exportHandoffArchetypeHint: string;
   /** Short hint under handoff target select */
   exportHandoffZipHint: string;
@@ -232,9 +243,13 @@ export type Translation = {
   };
 };
 
+/** Work sidebar + hub — shared tagline (two lines on /work, one line on hub). */
+const APP_SUBTITLE_LINE1 = "안전한 AI 협업을 위한";
+const APP_SUBTITLE_LINE2 = "단계별로 정리하는 작업 요청";
+
 export const t: Translation = {
-  appSubtitle1: "안전한 AI 협업을 위한",
-  appSubtitle2: "단계별 프롬프트 하네스",
+  appSubtitle1: APP_SUBTITLE_LINE1,
+  appSubtitle2: APP_SUBTITLE_LINE2,
   settings: "설정",
   resetAll: "초기화",
   settingsResetSection: "세션",
@@ -248,18 +263,25 @@ export const t: Translation = {
   minimizePromptPreview: "프롬프트 미리보기 접기",
   expandPromptPreview: "프롬프트 미리보기 펼치기",
   sidebarLinksLabel: "바로가기",
-  navPlaybook: "하네스 플레이북",
-  navResult: "전달 결과",
+  navPlaybook: "플레이북",
+  navResult: "작업 결과",
   navHistory: "히스토리",
+  navStartScreen: "시작 화면",
+  hubTitle: "PrePrompt",
+  hubSubtitle: `${APP_SUBTITLE_LINE1} ${APP_SUBTITLE_LINE2}`,
+  hubWorkTitle: "작업하기",
+  hubWorkDesc: "다섯 단계로 요청을 정리하고 미리보기·작업 결과로 이어집니다.",
+  hubPlaybookDesc: "질문에 답하며 방향을 잡고, 추천 템플릿으로 초안을 채웁니다.",
+  hubHistoryDesc: "서버에 저장된 작업 결과을 보거나 불러와 이어서 씁니다.",
   historyPageTitle: "히스토리",
   historyPageSubtitle:
-    "이 서버에 저장된 핸드오프 스냅샷입니다. 누가 언제 올렸는지·ZIP 다운로드 횟수를 볼 수 있고, 다른 사람의 전달물을 불러와 이어서 쓸 수 있습니다. API 키는 저장되지 않습니다.",
+    "이 서버에 저장된 작업 결과 기록입니다. 누가 언제 올렸는지, ZIP을 몇 번 받았는지 볼 수 있고, 다른 사람이 올린 것도 불러와 이어서 쓸 수 있습니다.",
   historyServerNote:
-    "데이터는 배포 서버의 `.data/handoff-history.json`에 쌓입니다. Vercel 같은 읽기 전용/다중 인스턴스 환경에서는 저장이 되지 않을 수 있으며, 그 경우 로컬에서 `npm run dev` 또는 단일 프로세스 `next start`로 쓰는 것을 권장합니다.",
+    "목록은 이 앱이 돌아가는 서버에만 쌓입니다. 읽기 전용 호스팅이나 여러 대가 동시에 뜨는 배포에서는 저장이 안 되거나 목록이 비어 보일 수 있습니다. 그럴 때는 내 컴퓨터에서 앱을 한 대만 띄운 뒤 쓰는 편이 안전합니다.",
   historyRefresh: "새로고침",
   historyFilterAll: "전체",
-  historyFilterMine: "내가 저장한 것",
-  historyEmpty: "아직 저장된 항목이 없습니다. 「전달 결과」에서 「서버에 저장」을 눌러 보세요.",
+  historyFilterMine: "내가 저장한 항목",
+  historyEmpty: "아직 저장된 항목이 없습니다. 작업 결과 화면에서 서버에 저장을 눌러 보세요.",
   historyLoadError: "불러오지 못했습니다.",
   historyTableTitle: "제목",
   historyTableAuthor: "저장한 사람",
@@ -268,11 +290,11 @@ export const t: Translation = {
   historyActions: "동작",
   historyLoadButton: "에디터에 불러오기",
   historyZipButton: "ZIP 받기",
-  historyDisplayNameBanner: "「내가 저장한 것」 필터에 쓸 표시 이름",
+  historyDisplayNameBanner: "내가 저장한 항목만 볼 때 쓰는 표시 이름",
   historySetNameHint: "아래에 적은 이름과 저장 기록의 이름이 같으면 내 항목으로 묶입니다.",
-  historySaveDialogTitle: "서버에 핸드오프 저장",
+  historySaveDialogTitle: "서버에 이 작업 결과 저장",
   historySaveDialogDesc:
-    "다섯 칸·딥 플랜·백엔드 설정(키 제외)이 이 배포 인스턴스에 JSON으로 저장됩니다. 팀원이 같은 주소로 접속하면 목록에서 볼 수 있습니다.",
+    "다섯 칸에 적은 내용, 깊게 짜 둔 계획, 앱 설정(비밀 키는 빼고)이 이 서버에 함께 저장됩니다. 같은 주소로 들어온 사람은 목록에서 함께 볼 수 있습니다.",
   historyAuthorLabel: "표시 이름",
   historyAuthorPlaceholder: "예: 김프롬프트",
   historyAuthorHint: "같은 브라우저에 기억해 두었다가 다음 저장 때 다시 채웁니다.",
@@ -281,38 +303,38 @@ export const t: Translation = {
   historySaveSubmit: "저장",
   historySaving: "저장 중…",
   historySaveAuthorRequired: "표시 이름을 한 글자 이상 입력해 주세요.",
-  historySaveError: "저장에 실패했습니다. 서버 로그와 디스크 권한을 확인해 주세요.",
+  historySaveError: "저장에 실패했습니다. 네트워크와 이 서버의 저장 공간·권한을 확인해 주세요.",
   historySaveToServer: "서버에 저장",
-  historyBackResult: "전달 결과로",
+  historyBackResult: "작업 결과로",
   historyBackHome: "작성 화면으로",
-  historyPanelTitle: "필터 · ZIP 전달 대상",
+  historyPanelTitle: "필터와 ZIP 받기 설정",
   historyPanelDesc:
-    "「내가 저장한 것」은 표시 이름과 저장할 때 적은 이름이 같을 때만 골라 보여 줍니다. ZIP은 아래에서 고른 전달 대상으로 받습니다.",
+    "내가 저장한 항목은 표시 이름과 저장할 때 적은 이름이 같을 때만 골라 보여 줍니다. ZIP은 아래에서 고른 넘길 대상 기준으로 받습니다.",
   historyBoardHint: "카드를 누르면 작은 창에서 미리보기와 동작을 선택할 수 있습니다.",
-  historyDetailTitle: "저장된 핸드오프",
+  historyDetailTitle: "저장된 작업 결과",
   historyDraftPreviewLabel: "요청 초안 미리보기",
   historyDraftPreviewEmpty: "(요청 초안이 비어 있습니다)",
-  resultPageTitle: "전달 결과",
+  resultPageTitle: "작업 결과",
   resultPageSubtitle:
-    "에이전트 전달 ZIP·첫 메시지 복사를 확인합니다. Cursor Agent 모델 추천은 합쳐진 하네스가 있을 때만, 그 내용을 구현할 때 기준으로 표시됩니다.",
+    "에이전트에 넘길 ZIP과 첫으로 보낼 말을 확인합니다. Cursor Agent 모델 추천은 다섯 칸을 모두 합친 뒤에만, 그 내용을 실제로 만들 때를 가정해 보여 줍니다.",
   resultBackHome: "작성 화면으로",
-  resultModelRecommendationsTitle: "이번 전달 구현용 Cursor Agent 모델",
+  resultModelRecommendationsTitle: "이번 내용에 맞는 Cursor Agent 모델",
   resultModelRecommendationsDesc:
-    "지금 합쳐진 하네스(SPEC·범위·단계)를 읽고 구현 난이도를 대략 잡은 뒤, 이 PC의 `cursor-agent --list-models` 목록 안에서만 두 가지를 골랐습니다. 일반 벤치나 무관한 추천이 아닙니다.",
+    "지금 합쳐진 다섯 칸을 읽고 난이도를 짚은 뒤, 이 컴퓨터에 연결된 Cursor Agent 모델 목록 안에서 두 가지만 골랐습니다. 웹에서 흔히 보이는 순위표와는 별개입니다.",
   resultModelPerfTitle: "성능 우선",
   resultModelValueTitle: "비용 대비 효율",
-  resultModelHarnessTokensApprox: "이번 합본 텍스트 기준 추정",
+  resultModelHarnessTokensApprox: "합쳐진 글자 수로 본 대략치",
   resultModelHarnessTokensHint:
-    "(문자 길이÷4 근사. Cursor가 청구하는 토큰이나 에이전트가 실제로 읽는 분량과 같지 않을 수 있습니다.)",
+    "(글자 수를 네로 나눈 값입니다. 실제 과금이나 모델이 읽는 분량과 같지 않을 수 있습니다.)",
   resultModelsRefresh: "목록 새로고침",
   resultModelsEmpty: "추천할 모델이 없습니다. 설정에서 Cursor Agent 목록을 불러올 수 있는지 확인해 주세요.",
   resultModelsHeuristicNote:
-    "키워드·분량 기반 추정입니다. 팀 규율·CI·레거시 난이도는 합본에 없을 수 있으니, 실행 후 모델은 직접 조정하세요. 공식 요금·성능 지표가 아닙니다.",
+    "키워드와 분량만으로 짚은 추천입니다. 팀 규칙이나 오래된 코드 난이도는 글 안에 없을 수 있으니, 실행할 모델은 직접 조정하세요. 공식 요금표나 성능 순위가 아닙니다.",
   promptPreview: "프롬프트 미리보기",
-  promptPreviewSubtitle: "다섯 칸이 합쳐진 텍스트를 확인·복사합니다. ZIP과 모델 추천은 「전달 결과」에서 이어집니다.",
-  previewToolbarTitle: "구조화된 출력",
+  promptPreviewSubtitle: "다섯 칸이 합쳐진 텍스트를 확인하고 복사합니다. ZIP과 모델 추천은 작업 결과 화면에서 이어집니다.",
+  previewToolbarTitle: "묶어서 보기",
   previewToolbarHint:
-    "다섯 칸이 합쳐진 한 덩어리 텍스트입니다. 그대로 복사해 쓰거나, 아래 전달 카드에서 ZIP으로 에이전트 작업공간에 넣을 수 있습니다.",
+    "다섯 칸이 한 덩어로 이어진 텍스트입니다. 그대로 복사해 쓰거나, 아래 패키지 카드에서 ZIP으로 받아 작업 폴더에 풀 수 있습니다.",
   copy: "복사",
   copied: "복사됨",
   fillStages: "각 단계를 채우면\n완성된 프롬프트가 여기에 표시됩니다.",
@@ -322,35 +344,35 @@ export const t: Translation = {
   done: "완료",
   draftSave: "임시저장",
   draftSavedShort: "이 브라우저에 저장했습니다.",
-  doneOpenPreview: "전달 결과 보러 가기",
+  doneOpenPreview: "작업 결과 보러 가기",
   draftSaveFailed: "브라우저 저장소에 저장하지 못했습니다. 용량이 부족하거나 차단되었을 수 있습니다.",
   playbookDraftLoadedFeedback:
-    "플레이북 초안을 넣었습니다. 「추가 보완:」 뒤를 채운 뒤 자동 구조화를 누르세요.",
-  readyInSidebar: "아래 버튼으로 전달 화면으로 이동해 ZIP과 모델 추천을 확인하세요",
+    "플레이북 초안을 넣었습니다. 맨 아래 '추가 보완:'로 시작하는 줄 뒤를 채운 뒤 자동 구조화를 누르세요.",
+  readyInSidebar: "아래 버튼으로 작업 결과 화면에서 ZIP과 모델 추천을 확인하세요",
   stepOf: (c, t) => `${c} / ${t} 단계`,
   autoStructure: "✨ 자동 구조화",
   autoStructuring: "✨ 구조화 중...",
   settingsTitle: "설정",
   settingsDesc: "API 키 및 환경설정을 관리합니다.",
   settingsDescCursorAgent:
-    "이 모드에서는 자동 구조화가 이 PC의 Cursor Agent(로컬 CLI)로 실행됩니다. Gemini API 키는 사용하지 않습니다.",
+    "이 모드에서는 자동 구조화가 이 컴퓨터에 설치된 Cursor Agent로 실행됩니다. Gemini API 키는 쓰이지 않습니다.",
   settingsSecurity:
-    "Gemini: API 키는 이 브라우저(로컬 스토리지)에만 두고, 자동 구조화 시에만 /api/gemini로 전달되며 앱이 저장하지 않습니다. 신뢰할 수 없다고 판단할 경우, 키 값을 넣지 마세요.",
+    "Gemini: API 키는 이 브라우저에만 두고, 자동 구조화를 돌릴 때만 서버로 전송됩니다. 앱이 따로 서버에 키를 저장하지는 않습니다. 불안하면 값을 넣지 마세요.",
   geminiApiKey: "Gemini API 키",
   geminiApiKeyPlaceholder: "Google AI Studio에서 복사한 키를 붙여넣기",
   geminiApiKeyHintBefore: "Google AI Studio ",
   geminiApiKeyHintAfter: " 에서 키를 발급받으세요.",
   geminiApiKeyShow: "API 키 표시",
   geminiApiKeyHide: "API 키 숨기기",
-  llmProvider: "자동 구조화 백엔드",
+  llmProvider: "자동 구조화에 쓸 연결",
   llmProviderGemini: "Google Gemini",
-  llmProviderCursorAgent: "Cursor Agent (로컬 CLI)",
+  llmProviderCursorAgent: "Cursor Agent(이 컴퓨터)",
   cursorAgentModel: "Cursor Agent 모델",
-  cursorAgentModelDefault: "기본 (CLI·계정 기본값)",
+  cursorAgentModelDefault: "기본값(도구가 정한 모델)",
   cursorAgentModelRefresh: "목록 새로고침",
   cursorAgentModelsLoading: "모델 목록을 불러오는 중…",
   cursorAgentModelsError:
-    "모델 목록을 불러오지 못했습니다. 이 PC에 Cursor CLI가 있고 `cursor-agent login`으로 인증했는지 확인하세요.",
+    "모델 목록을 불러오지 못했습니다. Cursor Agent가 설치되어 있고 로그인까지 끝났는지 확인해 주세요.",
   cancel: "취소",
   saveChanges: "저장",
   alertNoApiKey: "먼저 설정에서 Gemini API 키를 입력해 주세요.",
@@ -359,7 +381,7 @@ export const t: Translation = {
   alertDialogErrorTitle: "오류",
   alertDialogOk: "확인",
   alertGeminiServerStatusHint:
-    "서버 오류(HTTP 5xx)인 경우 Google AI Studio 상태 페이지를 확인해 보세요: https://aistudio.google.com/status",
+    "서버 쪽 오류일 때는 Google AI Studio 상태 페이지를 확인해 보세요: https://aistudio.google.com/status",
   specificityLow: "너무 모호함",
   specificityMid: "구체화 중",
   specificityHigh: "잘 작성됨",
@@ -387,21 +409,21 @@ export const t: Translation = {
       label: "완료 기준",
       description: "끝났는지 눈으로·테스트로 확인할 조건",
       placeholder:
-        "'잘 만들어줘'가 아니라, 통과면 O·아니면 X로 말할 수 있는 조건만 적습니다.\n\n- 한 줄에 확인 가능한 결과 하나(화면·API 응답·명령 결과 등)\n- 우선순위가 있으면 (1)(2)처럼 번호\n\n버전·폴더 같은 사실은 「배경·환경」으로, 하면 안 되는 일은 「필수·금지」로, 몇 번째로 무엇을 할지는 「작업 순서」로 나눕니다.",
+        "'잘 만들어줘'가 아니라, 통과면 O·아니면 X로 말할 수 있는 조건만 적습니다.\n\n- 한 줄에 확인 가능한 결과 하나(화면·서버 응답·터미널 결과 등)\n- 우선순위가 있으면 1), 2)처럼 번호\n\n버전·폴더 같은 사실은 배경·환경 칸으로, 하면 안 되는 일은 필수·금지 칸으로, 몇 번째로 무엇을 할지는 작업 순서 칸으로 나눕니다.",
       bad: "로그인 잘 되게 만들어줘.",
       good:
         "- 이메일+비밀번호로 로그인 폼 제출 시 200 응답.\n- 성공 시 JWT가 httpOnly 쿠키에만 있고, 세션스토리지·로컬스토리지에는 토큰 없음.\n- 로그인 후 브라우저에서 /dashboard URL이 열림(리다이렉트).",
       tips: [
-        "'이미 있다/없다' 같은 상황 설명은 「배경·환경」 칸으로 옮기세요.",
-        "'절대 하면 안 되는 것'은 「필수·금지」로 옮기세요.",
-        "'이번에 안 하는 것'은 「이번 작업 범위」의 '안 할 일'로 옮기세요.",
+        "'이미 있다/없다' 같은 상황 설명은 배경·환경 칸으로 옮기세요.",
+        "'절대 하면 안 되는 것'은 필수·금지 칸으로 옮기세요.",
+        "'이번에 안 하는 것'은 이번 작업 범위 칸의 '안 할 일'로 옮기세요.",
       ],
     },
     realityAnchor: {
       label: "배경·환경",
       description: "에이전트가 착각하면 안 되는 사실만",
       placeholder:
-        "구현이 없어도 됩니다. '폴더는 비어 있음', 'Next만 설치해 둠'처럼 적어도 좋습니다.\n\n넣기 좋은 것:\n- 프레임워크·언어·패키지 버전, 브랜치 이름\n- 이미 있는 파일·경로 / 아직 없는 영역\n- 로컬에서 재현할 때 치는 명령\n\n'이렇게 되면 된다'는 완료 기준 칸, '먼저 이 파일·그다음 이 API'는 작업 순서 칸입니다. 자동 구조화(SPEC)로 채워진 경로·API는 작업 순서와 맞춰 주세요.",
+        "구현이 없어도 됩니다. '폴더는 비어 있음', 'Next만 설치해 둠'처럼 적어도 좋습니다.\n\n넣기 좋은 것:\n- 프레임워크·언어·패키지 버전, 브랜치 이름\n- 이미 있는 파일·경로 / 아직 없는 영역\n- 로컬에서 재현할 때 치는 명령\n\n'이렇게 되면 된다'는 완료 기준 칸, '먼저 이 파일, 그다음 서버 요청'은 작업 순서 칸입니다. 자동 구조화로 채워진 경로·이름은 작업 순서와 맞춰 주세요.",
       bad: "Next 쓰는 일반적인 웹앱이에요. 알아서 맞춰 주세요.",
       good:
         "- Next.js 14, App Router, 소스는 src/app 아래.\n- Supabase는 @supabase/ssr로 이미 연결됨(클라이언트만 사용 중).\n- 인증·미들웨어 코드는 아직 없음.\n- User 테이블 컬럼: id, email, created_at.\n- 로컬: pnpm dev 후 http://localhost:3000",
@@ -415,7 +437,7 @@ export const t: Translation = {
       label: "필수·금지",
       description: "방식·스택·보안 — 양보 없는 규칙",
       placeholder:
-        "어떻게 일할지에 대한 빨간선만 적습니다(새 패키지 금지, 특정 폴더만 수정 등).\n\n- 반드시 / 절대 금지 / 오직 ~만 같은 짧은 문장\n- 보안·라이선스·호환성 같이 지키지 않으면 안 되는 것\n\n'1번 파일 고치고 2번 API 부르고…' 같은 순서는 「작업 순서」 칸입니다.",
+        "어떻게 일할지에 대한 빨간선만 적습니다(새 패키지 금지, 특정 폴더만 수정 등).\n\n- 반드시 / 절대 금지 / 오직 ~만 같은 짧은 문장\n- 보안·라이선스·호환성 같이 지키지 않으면 안 되는 것\n\n'1번 파일 고치고 2번 서버 호출…' 같은 순서는 작업 순서 칸입니다.",
       bad: "깔끔하고 유지보수 잘 되게, 필요하면 라이브러리도 추가해 줘.",
       good:
         "- MUST: App Router만 사용. Pages Router 사용 금지.\n- MUST NOT: 새 npm 의존성 추가.\n- ONLY: 스타일은 Tailwind 유틸만(별도 .css 파일 추가 금지).\n- NEVER: prisma/schema.prisma 수정.\n- MUST NOT: 클래스 컴포넌트(함수 컴포넌트만).",
@@ -429,7 +451,7 @@ export const t: Translation = {
       label: "이번 작업 범위",
       description: "이 요청 한 번으로 할 일과, 일부러 안 할 일",
       placeholder:
-        "'전달'은 우편이 아니라 이번에 AI·동료에게 시키는 작업 묶음입니다.\n\n- 할 일: 이번에 반드시 나와야 하는 파일·기능·결과\n- 안 할 일: 이번에는 치우고 나중으로 미루는 것\n- 마지막 한 줄: '위에서 안 적은 건 이번 작업에 넣지 않는다'처럼 고정하면 범위가 덜 새요.",
+        "**작업 결과**이란 우편이 아니라, 이번에 AI나 동료에게 넘길 요청·산출물 묶음입니다.\n\n- 할 일: 이번에 반드시 나와야 하는 파일·기능·결과\n- 안 할 일: 이번에는 치우고 나중으로 미루는 것\n- 마지막 한 줄: '위에서 안 적은 건 이번 작업에 넣지 않는다'처럼 고정하면 범위가 덜 새요.",
       bad: "인증 관련된 거 다 해 줘.",
       good:
         "- 이번 작업에 포함: src/components/LoginForm.tsx — 필드, 유효성, 제출 버튼까지.\n- 기존 POST /api/login과 연결(API는 이미 머지됐다고 가정).\n- 이번 작업에 넣지 않음: 이메일 인증, 비밀번호 재설정, OAuth, 이메일 템플릿.\n- 위 '넣지 않음' 항목은 이번 요청에서 하지 않는다.",
@@ -443,12 +465,12 @@ export const t: Translation = {
       label: "작업 순서",
       description: "1·2·3번째로 무엇을 할지, 어떻게 확인할지",
       placeholder:
-        "이 문서만 보고도 무엇을 어떤 순서로 고치고, 끝나면 무엇으로 확인할지 적습니다.\n\n- 1·2·3 번호가 있는 실행 순서\n- 건드릴 경로·함수·API 이름\n- 마지막에 돌릴 테스트·lint·curl 등\n\n여기에는 넣지 마세요: '답은 JSON으로', '요약·다음 단계 포함'처럼 에이전트 답장 형식을 정하는 말 — 그건 코드 작업과 다른 종류의 지시입니다.",
+        "이 문서만 보고도 무엇을 어떤 순서로 고치고, 끝나면 무엇으로 확인할지 적습니다.\n\n- 1·2·3 번호가 있는 실행 순서\n- 건드릴 경로·함수·서버 주소 이름\n- 마지막에 돌릴 테스트·검사·간단한 요청 등\n\n여기에는 넣지 마세요: '답은 JSON으로', '요약·다음 단계 포함'처럼 답장 꾸밈만 정하는 말 — 그건 코드 작업과 다른 종류의 지시입니다.",
       bad: "우선 스키마 만들고, 그다음 API 하고, 프론트는 알아서.",
       good:
         "- 1) SPEC의 모델에 맞춰 prisma/schema.prisma 수정 후 pnpm prisma migrate dev.\n- 2) POST /api/event/spin 구현: 행 잠금·당첨 수량 반영(SPEC의 시그니처 따름).\n- 3) src/app/event/page.tsx에서 위 API 호출, 성공/실패 메시지 표시.\n- 4) pnpm test && pnpm lint 통과 후, SPEC에 있는 curl 예시로 수동 확인.",
       tips: [
-        "자동 구조화(SPEC)에 순서가 있다면, 여기서 같은 순서로 짧게 다시 쓰면 실행이 어긋나지 않습니다.",
+        "자동 구조화로 순서가 잡혀 있다면, 여기서 같은 순서로 짧게 다시 쓰면 실행이 어긋나지 않습니다.",
         "각 번호 단계가 끝났는지 스스로 점검할 수 있게 쓰면 좋습니다.",
         "에이전트에게 '어떤 형식으로 말해'가 아니라 '어떤 코드를 어디에'를 적는 칸입니다.",
       ],
@@ -461,19 +483,19 @@ export const t: Translation = {
     actionSlice: "이번 작업 범위",
     responseContract: "작업 순서",
   },
-  exportTitle: "에이전트 전달",
+  exportTitle: "에이전트 작업 패키지",
   previewHandoffCardDesc:
-    "전달 대상을 고른 뒤 ZIP을 받아 저장소 루트에 풀고, 「옮길 위치 안내」로 경로를 맞추세요.",
+    "넘길 대상을 고른 뒤 ZIP을 받아 프로젝트 폴더 맨 위에서 풀고, 폴더 안내에서 경로를 맞추세요.",
   previewSectionsHeading: "합쳐진 텍스트에 들어가는 칸",
-  previewOneLinerPreviewLabel: "첫 채팅 메시지(CHAT_MESSAGE.txt와 동일)",
-  downloadZip: "전달 ZIP 받기",
-  exportHandoffTarget: "전달 대상",
-  exportHandoffArchetype: "전달 유형",
-  exportHandoffArchetypeNone: "기본 (유형 없음)",
+  previewOneLinerPreviewLabel: "첫으로 보낼 말, ZIP 안 첫 메시지와 같음",
+  downloadZip: "패키지 ZIP 받기",
+  exportHandoffTarget: "넘길 대상",
+  exportHandoffArchetype: "작업 방식",
+  exportHandoffArchetypeNone: "작업 방식 없음",
   exportHandoffArchetypeHint:
-    "ZIP과 첫 메시지 문구에 반영됩니다. 플레이북 추천 카드로 넘어오면 한 번 맞춰지며, 여기서 바꿀 수 있습니다.",
+    "작업 방식에 따라 ZIP과 첫 메시지 문구의 톤이 달라집니다. 플레이북에서 추천 카드로 오면 여기가 맞춰질 수 있습니다.",
   exportHandoffZipHint:
-    "다섯 칸이 채워져 있을 때 ZIP을 받을 수 있습니다. SPEC·task·AGENTS·선택한 대상의 하네스 파일·첫 채팅 문구(CHAT_MESSAGE.txt)가 포함됩니다.",
+    "다섯 칸이 채워져 있을 때 ZIP을 받을 수 있습니다. 자동으로 만든 설명서, 할 일 목록, 에이전트용 안내, 고른 대상에 맞는 규칙 파일, 첫 메시지 문구가 들어 있습니다.",
   handoffTargetCursor: "Cursor (.cursor/rules)",
   handoffTargetClaude: "Claude (CLAUDE.md)",
   handoffTargetGemini: "Gemini (GEMINI.md)",
@@ -485,30 +507,30 @@ export const t: Translation = {
   exportPathGuide: "옮길 위치 안내",
   exportPathGuideTitle: "폴더 구조 (대상별)",
   exportPathGuideIntro:
-    "ZIP을 저장소 루트에서 풀어 아래 트리와 경로가 일치하게 두세요:",
-  exportPathGuideTargetHint: "위의 「전달 대상」을 바꾸면 이 트리와 ZIP 안 구성이 함께 바뀝니다.",
+    "ZIP을 프로젝트 폴더 맨 위에서 풀어 아래 구조와 경로가 맞게 두세요:",
+  exportPathGuideTargetHint: "위에서 고른 넘길 대상을 바꾸면 이 트리와 ZIP 안 구성이 함께 바뀝니다.",
   pathGuideExtraCursor:
-    "Cursor는 프로젝트 규칙을 `.cursor/rules/`에서 읽습니다. 병합 후 Cursor에서 프로젝트를 열면 `preprompt-handoff.mdc`가 적용됩니다.",
+    "Cursor는 프로젝트 안 `.cursor/rules/`에서 규칙을 읽습니다. ZIP을 푼 뒤 같은 폴더를 Cursor로 열면 `preprompt-handoff.mdc`가 적용됩니다.",
   pathGuideExtraClaude:
-    "Claude Code 등은 보통 저장소 루트의 `CLAUDE.md`를 읽습니다. `SPEC.md`, `preprompt.task.json`과 같은 폴더에 두세요.",
+    "Claude Code 등은 보통 프로젝트 맨 위의 `CLAUDE.md`를 읽습니다. `SPEC.md`와 `preprompt.task.json`도 같은 맨 위 폴더에 두세요.",
   pathGuideExtraGemini:
-    "Gemini나 에디터가 루트의 `GEMINI.md`를 읽는 설정이라면 이 구조와 맞습니다.",
+    "Gemini나 에디터가 프로젝트 맨 위의 `GEMINI.md`를 읽도록 켜 두었다면 이 구조와 맞습니다.",
   pathGuideExtraCopilot:
-    "GitHub Copilot은 저장소의 `.github/copilot-instructions.md`를 워크스페이스 지침으로 읽습니다. `SPEC.md`와 `preprompt.task.json`은 저장소 루트에 두세요.",
+    "GitHub Copilot은 `.github/copilot-instructions.md`를 워크스페이스 지침으로 읽습니다. `SPEC.md`와 `preprompt.task.json`은 프로젝트 맨 위에 두세요.",
   pathGuideExtraWindsurf:
-    "Windsurf는 루트의 `.windsurfrules`를 캐스케이드 규칙으로 읽는 흐름이 많습니다. `SPEC.md`와 `preprompt.task.json`과 같은 폴더에 두세요.",
+    "Windsurf는 맨 위의 `.windsurfrules`를 규칙으로 읽는 경우가 많습니다. `SPEC.md`와 `preprompt.task.json`도 같은 맨 위 폴더에 두세요.",
   pathGuideExtraGeneric:
-    "`HANDOFF.md`는 범용 마크다운입니다. 특수 규칙 폴더가 없는 에이전트 UI에 두고, 계약은 여전히 SPEC과 task JSON에 있습니다.",
+    "`HANDOFF.md`는 범용 안내입니다. 전용 규칙 폴더가 없는 에이전트에 두고, 세부 약속은 ZIP에 들어 있는 설명서와 할 일 목록을 따르면 됩니다.",
   exportPathGuideKeepNames:
     "파일·폴더 이름은 바꾸지 말고, 없는 폴더만 만든 뒤 그대로 넣으세요.",
   exportPathGuideZipTitle: "ZIP에 대해",
   exportPathGuideZipBody:
-    "경로가 흐트러지지 않도록 여기서는 ZIP만 제공합니다. 항상 SPEC.md, preprompt.task.json, AGENTS.md, CHAT_MESSAGE.txt가 들어가고, 선택한 대상에 맞는 하네스(Cursor 규칙, CLAUDE.md, GEMINI.md, Copilot 지침, .windsurfrules, HANDOFF.md)가 추가됩니다.",
+    "경로가 흐트러지지 않도록 ZIP으로만 드립니다. 항상 설명서·할 일 목록·에이전트 안내·첫 메시지가 들어가고, 고른 대상에 맞는 규칙 파일이 더 붙습니다.",
   intentLabel: "의도",
   about: {
     title: "PrePrompt 소개",
     description:
-      "PrePrompt는 작업을 AI에 넘기기 전에 한 번 거치는 Pre-AI Cognitive Layer입니다. 오른쪽으로 갈수록 '막연한 요청'이 '무엇을 어떻게 할지'에 가까워지도록 다섯 영역으로 나뉩니다. 다 됐는지 확인하는 조건, 에이전트가 틀리면 안 되는 사실, 지켜야 할 금지선, 이번 요청으로 할 일과 안 할 일, 그리고 몇 번째로 무엇을 고치고 어떻게 검증할지(코드 작업 순서이지, 에이전트 답장 형식 지시가 아닙니다).\n자동 구조화는 SPEC·task JSON에 스택과 단계별 블루프린트(경로·모델·API·검증)를 채워, 처음 보는 사람도 추측 없이 진행할 수 있게 합니다.\n같은 확인을 되풀이하는 채팅과 범위가 밀려 나가는 현상을 줄이고, 무엇을 요청했는지 더 선명하게 남기는 것이 목표입니다.",
+      "PrePrompt는 AI나 동료에게 일을 넘기기 전에, 막연한 말을 다섯 덩어로 나누어 적게 돕는 도구입니다. 끝났는지 확인하는 조건, 틀리면 안 되는 사실, 지켜야 할 금지선, 이번에 할 일과 일부러 안 할 일, 그리고 몇 번째로 무엇을 고치고 어떻게 확인할지를 나눕니다. 여기서 말하는 순서는 코드를 고치는 순서이지, 답장 형식을 정하는 일이 아닙니다.\n자동 구조화는 스택과 단계별 계획(경로·검증 등)을 채워 넣어, 처음 보는 사람도 덜 헤매게 합니다.\n같은 질문을 반복하는 대화와 범위가 커지는 일을 줄이고, 무엇을 부탁했는지 더 분명히 남기는 것이 목표입니다.",
     howToUseTitle: "PrePrompt 사용 방법",
     backToHome: "홈으로 돌아가기",
     link: "소개 / 가이드",

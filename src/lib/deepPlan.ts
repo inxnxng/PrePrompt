@@ -217,8 +217,8 @@ function normalizeImplementationBlueprint(raw: unknown): ImplementationBlueprint
             typeof o.notApplicableReason === "string"
                 ? o.notApplicableReason
                 : typeof (o as { not_applicable_reason?: string }).not_applicable_reason === "string"
-                  ? (o as { not_applicable_reason: string }).not_applicable_reason
-                  : undefined,
+                    ? (o as { not_applicable_reason: string }).not_applicable_reason
+                    : undefined,
         repositoryLayout: (() => {
             const a = strList("repositoryLayout");
             return a.length ? a : strList("repository_layout");
@@ -265,8 +265,8 @@ function normalizeTechnicalApproach(raw: unknown): TechnicalApproach {
             typeof o.notApplicableReason === "string"
                 ? o.notApplicableReason
                 : typeof (o as { not_applicable_reason?: string }).not_applicable_reason === "string"
-                  ? (o as { not_applicable_reason: string }).not_applicable_reason
-                  : undefined,
+                    ? (o as { not_applicable_reason: string }).not_applicable_reason
+                    : undefined,
         languages: strList("languages"),
         frameworks: strList("frameworks"),
         runtimes: strList("runtimes"),
@@ -434,8 +434,8 @@ export function normalizeDeepPlan(raw: unknown): DeepPlan {
                 typeof src.notApplicableReason === "string"
                     ? src.notApplicableReason
                     : typeof (src as { not_applicable_reason?: string }).not_applicable_reason === "string"
-                      ? (src as { not_applicable_reason: string }).not_applicable_reason
-                      : undefined,
+                        ? (src as { not_applicable_reason: string }).not_applicable_reason
+                        : undefined,
             bullets: Array.isArray(src.bullets)
                 ? (src.bullets as unknown[]).filter((x) => typeof x === "string") as string[]
                 : [],

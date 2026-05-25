@@ -186,7 +186,7 @@ export default function HistoryPage() {
         <div className="min-h-screen bg-background text-foreground">
             <header className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-4 py-3 sm:px-6">
                 <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" asChild>
-                    <Link href="/">
+                    <Link href="/work">
                         <ArrowLeftIcon className="h-4 w-4" />
                         {t.historyBackHome}
                     </Link>

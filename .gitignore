@@ -54,3 +54,7 @@ bench/
 # IDE
 .idea
 .vscode
+package-lock.json
+
+# Python
+__pycache__

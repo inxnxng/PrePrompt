@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-05-07T05:53:16.440Z",
+  "source": "src/lib/handoffArchetypes.ts",
+  "archetypes": [
+    {
+      "id": "lean_ide",
+      "matchTags": [
+        "channel:ide",
+        "tokens:tight",
+        "depth:lean",
+        "iteration:multi",
+        "deliverable:code"
+      ],
+      "title": {
+        "en": "Lean IDE loop",
+        "ko": "토큰 아껴 쓰는 IDE 루프"
+      },
+      "shortHint": {
+        "en": "Narrow scope, thin ground truth, strict MUST NOT, numbered build steps.",
+        "ko": "범위는 좁게, 배경·환경은 얇게, MUST NOT은 단단히, 빌드 단계는 번호로."
+      }
+    },
+    {
+      "id": "spike_ide",
+      "matchTags": [
+        "channel:ide",
+        "speed:first",
+        "context:minimal",
+        "iteration:multi",
+        "deliverable:code",
+        "collab:solo"
+      ],
+      "title": {
+        "en": "Fast spike (IDE)",
+        "ko": "빠른 스파이크 (IDE)"
+      },
+      "shortHint": {
+        "en": "Tiny scope, learning goals allowed, hard safety rules, iterate fast.",
+        "ko": "범위 최소, 학습 목표 허용, 안전 규칙은 단단, 빠른 반복."
+      }
+    },
+    {
+      "id": "doc_oneshot",
+      "matchTags": [
+        "channel:doc_flow",
+        "quality:first",
+        "context:rich",
+        "iteration:oneshot",
+        "deliverable:doc",
+        "collab:team"
+      ],
+      "title": {
+        "en": "Doc / PR one-shot",
+        "ko": "문서·PR 한 번에"
+      },
+      "shortHint": {
+        "en": "Reviewers share one picture—decisions, non-goals, ordered checklist.",
+        "ko": "리뷰어가 같은 그림—결정·비목표·순서 있는 체크리스트."
+      }
+    },
+    {
+      "id": "review_audit",
+      "matchTags": [
+        "deliverable:review",
+        "quality:first",
+        "context:rich",
+        "iteration:oneshot",
+        "collab:team",
+        "stakes:security"
+      ],
+      "title": {
+        "en": "Review / audit pass",
+        "ko": "리뷰·감사 패스"
+      },
+      "shortHint": {
+        "en": "Evidence, pass/fail, no silent refactors—security and scope boundaries explicit.",
+        "ko": "근거·통과/실패·몰래 리팩터 금지—보안·범위 경계를 명시."
+      }
+    },
+    {
+      "id": "balanced",
+      "matchTags": [
+        "channel:mixed",
+        "tokens:balanced",
+        "pace:balanced",
+        "context:balanced",
+        "deliverable:mixed"
+      ],
+      "title": {
+        "en": "Balanced starter",
+        "ko": "균형형 스타터"
+      },
+      "shortHint": {
+        "en": "Default mix—clear criteria, honest ground, a few hard rules, explicit scope, ordered steps.",
+        "ko": "기본 혼합—명확한 기준·솔직한 배경·환경·필수·금지 몇 줄·명시적 범위·순서 있는 단계."
+      }
+    }
+  ]
+}

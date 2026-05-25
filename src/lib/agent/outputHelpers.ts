@@ -47,9 +47,9 @@ function isActionSliceMetaTitleLine(line: string): boolean {
     if (/[.!?…]/.test(x) && x.length > 40) return false;
 
     const patterns: RegExp[] = [
-        /^범위\s*[\(（]\s*이번\s*(?:핸드오프|전달)\s*[\)）]\s*$/i,
-        /^[\(（]\s*이번\s*(?:핸드오프|전달)\s*[\)）]\s*범위\s*$/i,
-        /^이번\s*(?:핸드오프|전달)\s*범위\s*$/i,
+        /^범위\s*[\(（]\s*이번\s*(?:핸드오프|전달|작업\s*넘김)\s*[\)）]\s*$/i,
+        /^[\(（]\s*이번\s*(?:핸드오프|전달|작업\s*넘김)\s*[\)）]\s*범위\s*$/i,
+        /^이번\s*(?:핸드오프|전달|작업\s*넘김)\s*범위\s*$/i,
         /^핸드오프\s*범위\s*$/i,
         /^이번\s*작업\s*범위\s*$/i,
         /^handoff\s*scope\s*$/i,

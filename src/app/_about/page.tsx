@@ -3,13 +3,14 @@
 import { STAGES } from "@/components/StageNav";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n";
-import { 
-    ArrowLeft as ArrowLeftIcon, 
+import {
+    ArrowLeft as ArrowLeftIcon,
     CodeIcon,
-    Globe as GlobeIcon, 
-    Info as InfoIcon, 
-    Mail as MailIcon 
-  } from "lucide-react";
+    Compass as CompassIcon,
+    Globe as GlobeIcon,
+    Info as InfoIcon,
+    Mail as MailIcon
+} from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -28,6 +29,7 @@ export default function AboutPage() {
                 </Link>
                 <Link href="/playbook">
                     <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                        <CompassIcon className="h-4 w-4" />
                         {t.navPlaybook}
                     </Button>
                 </Link>

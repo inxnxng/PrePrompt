@@ -35,11 +35,11 @@ export const HANDOFF_ARCHETYPES: readonly HandoffArchetypeDefinition[] = [
   {
     id: "lean_ide",
     matchTags: ["channel:ide", "tokens:tight", "depth:lean", "iteration:multi", "deliverable:code"],
-    title: "토큰 절약형 IDE 루프",
+    title: "토큰 아껴 쓰는 IDE 루프",
     shortHint: "범위 좁게, 배경 얇게, MUST NOT 단단히, 단계는 번호로.",
-    specAddendum: `## 전달 유형: 토큰 절약형 IDE 루프
+    specAddendum: `## 작업 방식: 토큰 아껴 쓰는 IDE 루프
 
-핑퐁 비용이 클 때 사용합니다.
+메시지를 여러 번 주고받는 비용이 클 때 쓰면 좋습니다.
 
 ### 다섯 칸
 
@@ -68,7 +68,7 @@ export const HANDOFF_ARCHETYPES: readonly HandoffArchetypeDefinition[] = [
     matchTags: ["channel:ide", "speed:first", "context:minimal", "iteration:multi", "deliverable:code", "collab:solo"],
     title: "빠른 스파이크 (IDE)",
     shortHint: "범위 최소, 학습 목표 OK, 안전 규칙 단단, 빠른 반복.",
-    specAddendum: `## 전달 유형: 빠른 스파이크
+    specAddendum: `## 작업 방식: 빠른 스파이크
 
 얇은 슬라이스·학습 결과가 1차 목표일 때.
 
@@ -96,9 +96,9 @@ export const HANDOFF_ARCHETYPES: readonly HandoffArchetypeDefinition[] = [
   {
     id: "doc_oneshot",
     matchTags: ["channel:doc_flow", "quality:first", "context:rich", "iteration:oneshot", "deliverable:doc", "collab:team"],
-    title: "문서·PR 원샷",
+    title: "문서·PR 한 번에",
     shortHint: "결정·비목표·순서 체크리스트로 리뷰어와 같은 그림.",
-    specAddendum: `## 전달 유형: 문서·PR 원샷
+    specAddendum: `## 작업 방식: 문서·PR 한 번에
 
 PR·RFC·위키 등 비동기 리뷰용.
 
@@ -113,21 +113,22 @@ PR·RFC·위키 등 비동기 리뷰용.
 ### 에이전트
 
 - 결정·비목표를 앞에 두어 확인 라운드 축소.`,
-    agentsAddendum: `### 유형: 문서·PR 원샷
+    agentsAddendum: `### 유형: 문서·PR 한 번에
 
 - 이 묶음만 읽는 리뷰어 가정.
 - 말투보다 결정·비목표 기록.`,
-    harnessAddendum: `## 유형 규율 (문서 원샷)
+    harnessAddendum: `## 유형 규율 (문서 한 번에)
 
 - 수락/거절이 분명한 문장. 대화 말투 규칙은 넣지 않음.`,
-    chatKickoff: "문서 원샷: SPEC·task JSON을 계약으로 읽고, 결정·비목표 우선, 체크리스트형 산출.",
+    chatKickoff:
+      "문서 한 번에: 합쳐진 설명서와 할 일 목록을 약속으로 읽고, 결정·비목표를 먼저, 체크리스트형으로 정리.",
   },
   {
     id: "review_audit",
     matchTags: ["deliverable:review", "quality:first", "context:rich", "iteration:oneshot", "collab:team", "stakes:security"],
     title: "리뷰·감사 패스",
     shortHint: "근거·통과/실패, 몰래 리팩터 금지, 범위 명시.",
-    specAddendum: `## 전달 유형: 리뷰·감사
+    specAddendum: `## 작업 방식: 리뷰·감사
 
 보안·컴플라이언스·아키 점검(기능 개발 아님).
 
@@ -156,7 +157,7 @@ PR·RFC·위키 등 비동기 리뷰용.
     matchTags: ["channel:mixed", "tokens:balanced", "pace:balanced", "context:balanced", "deliverable:mixed"],
     title: "균형형 스타터",
     shortHint: "기본값: 검증 가능한 기준·적당한 맥락·금지 몇 줄·명시적 범위·순서 단계.",
-    specAddendum: `## 전달 유형: 균형형 스타터
+    specAddendum: `## 작업 방식: 균형형 스타터
 
 극단 패턴 전 기본값.
 
@@ -175,12 +176,12 @@ PR·RFC·위키 등 비동기 리뷰용.
 ### 목표 충돌 시
 
 - 완료 기준 칸에 충돌 목표·지킬 것·양보할 것 한 블록.
-- 범위 칸에 미룬 목표(out/다음 전달) 명시.
+- 범위 칸에 미룬 목표(out/다음 작업 결과) 명시.
 - 필수·금지는 유지, 우선순위는 사실·제약만.`,
     agentsAddendum: `### 유형: 균형형 스타터
 
 - SPEC·task JSON 준수, 막힐 때만 짧게 질문.
-- 후속은 다음 전달로 분리.`,
+- 후속은 다음 작업 결과으로 분리.`,
     harnessAddendum: `## 유형 규율 (균형)
 
 - 에세이·과소명세 범위 모두 피함.`,
@@ -220,14 +221,14 @@ export type HarnessGuideTemplate = {
 export const HARNESS_GUIDE_STEPS: HarnessGuideStep[] = [
   {
     id: "surface",
-    question: "이 전달이 처음 붙는 곳은?",
+    question: "이 작업 결과가 처음 붙는 곳은?",
     options: [
       {
         id: "ch_ide",
         tags: ["channel:ide", "theme:engineering"],
         label: "IDE 에이전트 (Cursor, Copilot류, 로컬 규칙)",
         progressShort: "IDE",
-        hint: "경로·하네스·패치 중심. 배경·작업 순서를 촘촘히.",
+        hint: "경로와 수정 단위를 중심으로 쓰기 좋습니다. 배경·작업 순서를 촘촘히.",
       },
       {
         id: "ch_chat",
@@ -316,7 +317,7 @@ export const HARNESS_GUIDE_STEPS: HarnessGuideStep[] = [
   },
   {
     id: "proof",
-    question: "끝났음을 무엇으로 증명하나요?",
+    question: "작업이 끝났음을 무엇으로 증명하나요?",
     options: [
       {
         id: "proof_automation",
@@ -418,7 +419,7 @@ export const HARNESS_GUIDE_STEPS: HarnessGuideStep[] = [
   },
   {
     id: "audience",
-    question: "나 없이도 이 전달만 읽는 주 독자는?",
+    question: "나 없이도 이 작업 결과만 읽는 주 독자는?",
     options: [
       {
         id: "collab_solo",
@@ -450,7 +451,7 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "deliverable:code",
       "stakes:rework",
     ],
-    title: "토큰 절약형 코드 전달",
+    title: "토큰 아껴 쓰는 코드 작업 결과",
     description: "범위 좁게, 배경 짧게, 금지 강하게. 짧은 확인 질문과 번호 단계.",
     reasons: ["핑퐁 비용이 큰데 반복은 허용할 때.", "좁은 범위·짧은 맥락·실행 단계 강조."],
   },
@@ -467,9 +468,9 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "stakes:alignment",
       "proof:doc_consensus",
     ],
-    title: "원샷 SPEC·문서 패키지",
+    title: "문서·리뷰용 한 번에 작업 결과",
     description: "리뷰어가 같은 그림을 보도록 앞에 맥락·완료 기준, 순서는 체크리스트로.",
-    reasons: ["팀·문서 합의와 지시형 흐름.", "문서 산출·원샷 검증 전제."],
+    reasons: ["팀·문서 합의와 지시형 흐름.", "문서를 한 번에 넘기고 검증하는 전제."],
   },
   {
     id: "tpl-spike-fast",
@@ -500,7 +501,7 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "collab:team",
       "stakes:security",
     ],
-    title: "리뷰·감사 하네스",
+    title: "리뷰·점검용 작업 결과",
     description: "금지·완료 기준·비목표를 선명히. 보안·컴플라이언스·아키 점검용.",
     reasons: ["리스크와 통과/실패 검사.", "리뷰 산출·촘촘한 에이전트·팀 독자."],
   },
@@ -517,7 +518,7 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "context:balanced",
       "deliverable:mixed",
     ],
-    title: "균형형 PrePrompt 스타터",
+    title: "균형 잡힌 기본 작업 결과",
     description: "다섯 칸 균형: 기준·맥락·금지·범위 안/밖·순서.",
     reasons: ["극단 없이 섞인 목표.", "형태를 아직 고르는 중일 때."],
   },
@@ -533,7 +534,7 @@ export const HARNESS_GUIDE_TEMPLATES: HarnessGuideTemplate[] = [
       "channel:doc_flow",
       "proof:doc_consensus",
     ],
-    title: "목표 충돌·우선순위 전달",
+    title: "목표 충돌·우선순위 작업 결과",
     description:
       "일정·합의가 겹칠 때 완료 기준·범위 칸에 충돌 목표와 우선순위(지킬 것/양보)를 짧게. 계약으로 읽히게.",
     reasons: ["일정+합의 태그가 같이 잡힐 때.", "근거 한 줄을 같은 칸에 실을 때."],
@@ -558,11 +559,17 @@ export const HARNESS_GUIDE_UI: {
   similarSitesBackendCursor: string;
   similarSitesEmptyHint: string;
   startOver: string;
-  /** Primary: fill home step-0 draft from playbook picks, then go home (uses 1st ranked template) */
+  /** Primary: fill /work step-0 draft from playbook picks, then go to /work */
   sendToHomeDraft: string;
   sendToHomeDraftHint: string;
+  /** Per recommendation card — same as send but uses that template + archetype */
+  applyThisTemplateHome: string;
+  /** Shown under recommended section title */
+  recommendedCardsHint: string;
+  /** Fourth card in the recommended grid: how drafts + /work relate */
+  recommendedHelperCardTitle: string;
   openEditor: string;
-  /** Open home without overwriting the store */
+  /** Open /work without overwriting the store */
   openEditorBare: string;
   editorHint: string;
   backStep: string;
@@ -577,33 +584,28 @@ export const HARNESS_GUIDE_UI: {
   stepsRemaining: (n: number) => string;
   /** Progress cell: can jump back to re-pick */
   progressJumpToEdit: string;
-  /** Intro above recommended template cards */
-  recommendedCardsHint: string;
-  /** Per-card CTA: same as primary but for that template */
-  applyThisTemplateHome: string;
 } = {
-  pageTitle: "하네스 플레이북",
+  pageTitle: "플레이북",
   pageSubtitle:
-    "여섯 질문으로 전달 방향을 잡고, 태그로 스타터 템플릿을 추천합니다. 비슷한 사이트는 버튼을 눌렀을 때만 요청됩니다.",
+    "여섯 가지 질문으로 방향을 정한 뒤, 맞는 시작 템플릿을 골라 줍니다. 비슷한 사이트 추천은 버튼을 눌렀을 때만 불러옵니다.",
   backHome: "홈으로",
   stepLabel: (c, t) => `${c} / ${t} 단계`,
   recommendedTitle: "추천 템플릿",
   matchScore: (n) => `맞춤 점수: ${n}`,
-  reasonsTitle: "왜 맞는지",
+  reasonsTitle: "추천 근거",
   similarSitesTitle: "비슷한 사이트 추천",
   similarSitesIntro:
-    "버튼 전까지는 요청이 나가지 않습니다. 홈의 자동 구조화와 같은 백엔드(Gemini 키 또는 Cursor CLI)입니다. 추천은 쇼핑·공공 등 실제 이용자 서비스 위주이며, 위에서 고른 답과 이유를 연결해 줍니다.",
+    "버튼을 누르기 전에는 외부로 요청이 나가지 않습니다. 작업 화면의 자동 구조화와 같은 연결(Google Gemini 키 또는 이 컴퓨터의 Cursor Agent)을 씁니다.",
   similarSitesDisclaimer: "모델 생성 답변입니다. 링크는 직접 확인하세요.",
   similarSitesButton: "비슷한 사이트 추천받기",
   similarSitesLoading: "에이전트에 질문하는 중…",
-  similarSitesNeedApiKey: "Gemini 키를 넣거나 자동 구조화를 Cursor Agent로 바꿔 주세요.",
-  similarSitesBackendGemini: "백엔드: Google Gemini",
-  similarSitesBackendCursor: "백엔드: Cursor Agent (로컬 CLI)",
+  similarSitesNeedApiKey: "Google Gemini 키를 넣거나, 자동 구조화를 Cursor Agent로 바꿔 주세요.",
+  similarSitesBackendGemini: "연결: Google Gemini",
+  similarSitesBackendCursor: "연결: Cursor Agent(이 컴퓨터)",
   similarSitesEmptyHint: "버튼을 누르면 여기에 표시됩니다.",
   startOver: "처음부터",
-  openEditor: "메인 에디터로",
-  editorHint:
-    "다섯 칸을 채운 뒤 「전달 결과」에서 ZIP과 첫 메시지를 받으세요. 전달 유형은 결과 화면에서 고르거나, 플레이북에서 카드를 누르면 미리 맞춰집니다.",
+  openEditor: "작업 화면으로",
+  editorHint: "",
   backStep: "이전 단계",
   notChosen: "—",
   resultsTitle: "추천 결과",
@@ -612,11 +614,11 @@ export const HARNESS_GUIDE_UI: {
   progressComplete: "모든 단계 선택 완료",
   stepsRemaining: (n) => (n === 1 ? "남은 단계 1" : `남은 단계 ${n}`),
   progressJumpToEdit: "탭하면 이 단계로 돌아가 다시 고를 수 있어요",
-  recommendedCardsHint:
-    "각 카드의 버튼은 그 템플릿을 반영한 초안으로 홈의 스텝 0에 넣고 이동합니다. 아래 「홈에 초안 넣기」는 맞춤 점수 1순위 템플릿과 동일합니다.",
-  applyThisTemplateHome: "이 템플릿으로 홈에 초안 넣기",
-  sendToHomeDraft: "홈에 초안 넣기",
+  sendToHomeDraft: "작업 화면에 초안 넣기",
   sendToHomeDraftHint:
-    "선택을 자연어 초안으로 스텝 0에 넣고 홈으로 이동합니다. 1순위 추천 템플릿이 초안에 포함됩니다. 다른 필드는 비웁니다.",
-  openEditorBare: "초안 없이 홈으로",
+    "아래 카드마다 있는 버튼으로 특정 추천을 골라도 됩니다. 맨 아래 작업 화면에 초안 넣기는 점수가 가장 높은 추천과 같습니다.",
+  applyThisTemplateHome: "이 템플릿으로 작업 화면에 초안 넣기",
+  recommendedCardsHint: "카드 아래 버튼으로 골라 작업 화면에 넣으면, 초안과 패키지 ZIP에 쓸 작업 방식이 그 템플릿에 맞춰집니다.",
+  recommendedHelperCardTitle: "초안·작업 화면",
+  openEditorBare: "초안 없이 작업 화면으로",
 };

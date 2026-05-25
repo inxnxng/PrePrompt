@@ -6,15 +6,16 @@ import { stripMarkdownBoldMarkers } from "@/lib/stripMarkdownBoldMarkers";
 export const PLAYBOOK_DRAFT_SUPPLEMENT_LINE_PREFIX = "추가 보완: ";
 
 /**
- * Turns playbook answers (+ optional chosen template) into a single natural-language draft
+ * Turns playbook answers (+ optional chosen recommendation) into a single natural-language draft
  * for step 0. The final line is always `추가 보완: ` so the user can append in one place.
  */
 export function buildPlaybookNaturalPromptDraft(input: {
   picked: (string | null)[];
+  /** Recommendation card the user applied (any rank), or null to omit the block */
   chosenTemplate: HarnessGuideTemplate | null;
 }): string {
   const blocks: string[] = [];
-  blocks.push("【플레이북 초안】");
+  blocks.push("[플레이북 초안]");
   blocks.push("");
 
   for (let i = 0; i < HARNESS_GUIDE_STEPS.length; i++) {
@@ -33,10 +34,10 @@ export function buildPlaybookNaturalPromptDraft(input: {
 
   if (input.chosenTemplate) {
     const arch = getHandoffArchetype(input.chosenTemplate.archetypeId);
-    blocks.push("【선택한 추천 템플릿】");
+    blocks.push("[선택한 추천 템플릿]");
     blocks.push(`템플릿: ${input.chosenTemplate.title}`);
     blocks.push(`요약: ${input.chosenTemplate.description}`);
-    blocks.push(`유형: ${arch.title} — ${arch.shortHint}`);
+    blocks.push(`작업 방식: ${arch.title} — ${arch.shortHint}`);
     blocks.push("");
   }
 
